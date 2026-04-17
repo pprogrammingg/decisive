@@ -1,0 +1,44 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>⚽</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='white' stroke='black' stroke-width='2'/%3E%3Cpath fill='none' stroke='black' stroke-width='1.3' d='M16 2v28M2 16h28M4 7c8 7 16 7 24 0M4 25c8-7 16-7 24 0M7 25c-5-8-5-10 0-18M25 25c5-8 5-10 0-18'/%3E%3C/svg%3E"><style>
+*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;touch-action:manipulation}
+#g{position:fixed;top:8px;right:8px;z-index:3;width:44px;height:44px;border:0;border-radius:50%;padding:0;cursor:pointer;background:rgba(255,255,255,.9);color:#222;display:grid;place-items:center;box-shadow:0 1px 4px rgba(0,0,0,.2);font-size:22px;line-height:1}
+#o{position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:1;display:none;padding:56px 10px 10px;align-items:start;justify-content:flex-end}
+#o.v{display:flex}
+#p{background:#fff;color:#111;padding:12px 14px;border-radius:10px;max-width:92vw;width:280px;max-height:90vh;overflow:auto;font:14px system-ui,sans-serif;box-shadow:0 4px 20px rgba(0,0,0,.25)}
+#p .t{display:block;margin:0 0 6px;font-size:12px;font-weight:600}
+#p input[type=range]{width:100%}
+#p .r{display:flex;justify-content:space-between;font-size:10px;opacity:.6;margin-top:2px}
+#p .s{margin-top:10px;padding-top:10px;border-top:1px solid #e6e6e6}
+#p .s b{font-size:12px;display:block;margin-bottom:6px}
+#p .s label{display:block;font-size:11px;margin:4px 0 2px}
+#p .s input{width:100%;padding:8px;font:inherit;border:1px solid #bbb;border-radius:6px}
+#rng{margin-top:8px;font:700 12px/1.2 system-ui,sans-serif;color:#036;letter-spacing:.02em}
+</style></head><body>
+<button id="g" type="button" aria-label="Settings">⚙</button>
+<div id="o"><div id="p" role="dialog" aria-label="Settings">
+<span class="t" id="lt">Colors (<span id="nv">3</span>) 2–6</span>
+<input id="n" type="range" min="2" max="6" value="3" aria-labelledby="lt">
+<div class="r"><span>2</span><span>6</span></div>
+<div class="s"><b>Randomize time delay range</b>
+<label for="lo">Lower (s) · min 0.5 · only upper filled→0.5 · both blank→1–3</label><input id="lo" type="number" min="0.5" max="5" step="any" inputmode="decimal" autocomplete="off">
+<label for="hi">Upper (s) · max 5 · only lower filled→5 · both blank→1–3</label><input id="hi" type="number" min="0.5" max="5" step="any" inputmode="decimal" autocomplete="off">
+<p id="rng" role="status" aria-live="polite"></p>
+</div></div></div>
+<script>
+const P=['#e00','#0c0','#fff','#9fd6ff','#000','#888'],$=s=>document.querySelector(s),b=document.body,o=$('#o'),p=$('#p'),g=$('#g'),N=$('#n'),V=$('#nv'),Lo=$('#lo'),Hu=$('#hi'),rng=$('#rng');
+let T;
+function k(){return Math.min(6,Math.max(2,N.value|0))}
+function p(s){s=String(s).trim();if(!s)return null;const x=+s;return Number.isFinite(x)?x:null}
+function B(){let pl=p(Lo.value),ph=p(Hu.value),x,y;if(pl===null&&ph===null){x=3;y=1}else if(pl===null&&ph!==null){x=0.5;y=Math.min(5,Math.max(0.5,ph))}else if(pl!==null&&ph===null){x=Math.min(5,Math.max(0.5,pl));y=5}else{x=Math.min(5,Math.max(0.5,pl));y=Math.min(5,Math.max(0.5,ph))}if(x>y){const t=x;x=y;y=t}return{L:x,U:y}}
+function R(){const z=B();rng.textContent='Final delay: '+z.L+'–'+z.U+' s';return z}
+function q(){return P.slice(0,k())}
+function d(){const z=R();return((z.L+Math.random()*(z.U-z.L))*1e3)|0}
+function f(h){if(h==='#fff'||h==='#888'){g.style.background='rgba(0,0,0,.82)';g.style.color='#eee';g.style.boxShadow='0 1px 6px rgba(0,0,0,.4)'}else{g.style.background=g.style.color=g.style.boxShadow=''}}
+function c(){const z=q(),h=z[Math.random()*z.length|0];b.style.background=h;f(h)}
+function a(){clearTimeout(T);T=setTimeout(()=>{c();a()},d())}
+g.onclick=e=>{e.stopPropagation();o.classList.toggle('v');o.classList.contains('v')&&R()};
+o.onclick=()=>o.classList.remove('v');
+p.onclick=e=>e.stopPropagation();
+N.oninput=()=>{V.textContent=k();c();a()};
+function j(){R();a()}Lo.oninput=Hu.oninput=j;
+V.textContent=k();R();c();a();
+</script></body></html>
