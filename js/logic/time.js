@@ -1,8 +1,8 @@
 export const MAX_SUB = 5;
 export const TIME_NAME_MAX = 15;
-export const LAP_COLS = 3;
+/** Visible lap rows before the table scrolls. */
 export const LAP_ROWS = 10;
-export const MAX_LAPS = LAP_COLS * LAP_ROWS;
+export const MAX_LAPS = 99;
 
 export function defaultTime() {
   return { items: [] };
@@ -97,8 +97,7 @@ export function pauseItem(item, now = Date.now()) {
 
 export function resetItem(item) {
   if (item.type === "timer") {
-    const d = item.durationMs || 0;
-    return { ...item, running: false, runStartedAt: null, remainingMs: d, elapsedMs: 0 };
+    return { ...item, running: false, runStartedAt: null, remainingMs: 0, elapsedMs: 0 };
   }
   return { ...item, running: false, runStartedAt: null, elapsedMs: 0, laps: [] };
 }
@@ -128,6 +127,22 @@ export function addLap(item, now = Date.now()) {
   if (laps.length >= MAX_LAPS) return item;
   const elapsed = displayStopwatchMs(item, now);
   return { ...item, laps: laps.concat(elapsed) };
+}
+
+/** Split vs previous lap (or vs 0 for the first). */
+export function lapSplitMs(laps, index) {
+  const list = laps || [];
+  const cur = Math.max(0, Number(list[index]) || 0);
+  const prev = index > 0 ? Math.max(0, Number(list[index - 1]) || 0) : 0;
+  return Math.max(0, cur - prev);
+}
+
+/** Seconds + microseconds (ms precision, 6 fraction digits). */
+export function formatLapSplit(ms) {
+  const t = Math.max(0, ms | 0);
+  const sec = Math.floor(t / 1000);
+  const us = (t % 1000) * 1000;
+  return sec + "." + String(us).padStart(6, "0");
 }
 
 export function pad2(n) {

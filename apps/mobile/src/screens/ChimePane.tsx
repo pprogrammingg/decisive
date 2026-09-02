@@ -18,7 +18,7 @@ export function ChimePane({ chime }: { chime: ChimeState }) {
   const schedule = useCallback((fromMs?: number) => {
     clearTimeout(timerRef.current);
     if (pausedRef.current) return;
-    const ms = fromMs != null ? Math.max(0, fromMs) : Math.max(1000, nextChimeDelaySec(chimeRef.current) * 1000);
+    const ms = fromMs != null ? Math.max(0, fromMs) : Math.max(80, nextChimeDelaySec(chimeRef.current) * 1000);
     dueRef.current = Date.now() + ms;
     timerRef.current = setTimeout(() => {
       if (pausedRef.current) return;

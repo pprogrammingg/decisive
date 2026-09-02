@@ -47,7 +47,9 @@ export function createBoard(board, api) {
     if (api.order().length) return;
     const empty = document.createElement("div");
     empty.className = "board-empty";
-    empty.innerHTML = "<strong>Decisive</strong>Add a widget to begin";
+    empty.append(document.createElement("strong"));
+    empty.firstChild.textContent = "Decisive";
+    empty.append(document.createTextNode("Add a widget to begin"));
     board.append(empty);
   }
 

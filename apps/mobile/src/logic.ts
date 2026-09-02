@@ -24,39 +24,36 @@ export const WIDGET_META: Record<
     title: "Color change",
     blurb: "Full-screen colour drills",
     icon: "◐",
-    about: "Reaction drills. Pick two to six colours. The fill flips after a random wait between min and max. Call the colour — or the action it means — before it changes.",
+    about: "Reaction drills. Pick two to six colours. Each flip waits a random 0.5s step from min to max (inclusive), then picks a colour. Call it — or the action it means — before it changes.",
   },
   chime: {
     title: "Interval chime",
     blurb: "Sound on a fixed or random beat",
     icon: "music-note",
-    about: "A beep on a fixed or random beat for work/rest, keep-ups, or shuttles. Pause when you talk.",
+    about: "A beep on a fixed or random beat. Same delay rules as Color: 0.5–900 s, 0.5 steps, min ≤ max. Pause when you talk.",
   },
   time: {
     title: "Time",
     blurb: "Timers and stopwatches",
     icon: "⏱",
-    about: "Up to five timers and stopwatches. Tap a name to rename. Double-tap the time to open that clock. Stopwatch laps fill a 3×10 grid.",
+    about: "Up to five timers and stopwatches. Tap a name to rename. Double-tap the time to open that clock. Stopwatch laps: elapsed and split (seconds.microseconds); the table scrolls after 10 rows.",
   },
   stats: {
     title: "Stats",
     blurb: "Ten key / value field notes",
     icon: "▦",
-    about: "Field notes: names, keep-ups, splits. Ten key/value pairs per sheet. Tap the name to rename; tap ▦ to open the fields.",
+    about: "Field notes: names, keep-ups, splits. Ten key/value pairs per sheet. Tap the name or ▦ to open fields; long-press the name to rename; ✕ to remove.",
   },
 };
 
 export const MAX_WIDGETS = 4;
 export const MAX_SUB = 5;
 export const TIME_NAME_MAX = 15;
-export const LAP_COLS = 3;
 export const LAP_ROWS = 10;
-export const MAX_LAPS = LAP_COLS * LAP_ROWS;
+export const MAX_LAPS = 99;
 export const MAX_STATS = 5;
 export const STATS_PAIRS = 10;
 export const STATS_NAME_MAX = 10;
-export const CHIME_MIN = 1;
-export const CHIME_MAX = 900;
 
 export type ColorState = { slots: string[]; delayLo: string; delayHi: string };
 export type ChimeState = { mode: "fixed" | "random"; fixed: number; lo: number; hi: number };
@@ -162,10 +159,10 @@ export function colorSlotErrors(slots: unknown): string[] {
   ];
 }
 
-export function colorDelayErrors(loStr: unknown, hiStr: unknown): string[] {
-  const errors: string[] = [];
+export function delayRangeErrors(loStr: unknown, hiStr: unknown): string[] {
   const lo = parseNum(loStr);
   const hi = parseNum(hiStr);
+  const errors: string[] = [];
   if (lo === null) {
     errors.push("Enter a min time, or use the arrows. Min must be at least 0.5 seconds.");
   } else {
@@ -186,6 +183,21 @@ export function colorDelayErrors(loStr: unknown, hiStr: unknown): string[] {
   return errors;
 }
 
+export function delaySingleErrors(str: unknown, word = "Interval"): string[] {
+  const n = parseNum(str);
+  if (n === null) {
+    return ["Enter a time, or use the arrows. " + word + " must be at least 0.5 seconds."];
+  }
+  if (n < DELAY_MIN) return [word + " must be at least 0.5 seconds."];
+  if (n > DELAY_MAX) return [word + " cannot be more than 900 seconds."];
+  if (!isHalfStep(n)) return [word + " must be in steps of 0.5 seconds (for example 1 or 1.5)."];
+  return [];
+}
+
+export function colorDelayErrors(loStr: unknown, hiStr: unknown): string[] {
+  return delayRangeErrors(loStr, hiStr);
+}
+
 export function colorSettingsErrors(color: { slots?: unknown; delayLo?: unknown; delayHi?: unknown } | null | undefined): string[] {
   const c = color || {};
   return colorSlotErrors(c.slots).concat(colorDelayErrors(c.delayLo, c.delayHi));
@@ -202,9 +214,28 @@ export function colorDelayBounds(loStr: unknown, hiStr: unknown): { L: number; U
   return { L: parseNum(loStr) as number, U: parseNum(hiStr) as number };
 }
 
+export function delayStepCount(lo: number, hi: number): number {
+  const nLo = Math.round(lo / DELAY_STEP);
+  const nHi = Math.round(hi / DELAY_STEP);
+  return Math.max(1, nHi - nLo + 1);
+}
+
+/** Inclusive 0.5s step from min to max. Redrawn every colour change. */
+export function nextHalfStepSec(lo: number, hi: number, random = Math.random): number {
+  const nLo = Math.round(lo / DELAY_STEP);
+  const span = delayStepCount(lo, hi);
+  let u = random();
+  if (!Number.isFinite(u)) u = 0;
+  if (u < 0) u = 0;
+  if (u > 1) u = 1;
+  let idx = (u * span) | 0;
+  if (idx >= span) idx = span - 1;
+  return (nLo + idx) * DELAY_STEP;
+}
+
 export function nextColorDelayMs(color: ColorState, random = Math.random): number {
   const z = colorDelayBounds(color.delayLo, color.delayHi);
-  return ((z.L + random() * (z.U - z.L)) * 1e3) | 0;
+  return (nextHalfStepSec(z.L, z.U, random) * 1e3) | 0;
 }
 
 export function activePalette(color: ColorState): string[] {
@@ -247,19 +278,48 @@ export function ensureColor(raw: unknown): ColorState {
   return { slots, delayLo, delayHi };
 }
 
-export function clampChimeSec(n: unknown, fallback = CHIME_MIN): number {
-  const x = Number(n);
-  if (!Number.isFinite(x)) return fallback;
-  return Math.min(CHIME_MAX, Math.max(CHIME_MIN, Math.round(x)));
+export function defaultChime(): ChimeState {
+  return { mode: "fixed", fixed: 30, lo: 5, hi: 10 };
+}
+
+function asDelayStr(v: unknown): string {
+  return v == null ? "" : String(v);
+}
+
+export function chimeSettingsErrors(chime: { mode?: string; fixed?: unknown; lo?: unknown; hi?: unknown } | null | undefined): string[] {
+  const c = chime || {};
+  if (c.mode === "random") return delayRangeErrors(c.lo, c.hi);
+  return delaySingleErrors(c.fixed, "Interval");
+}
+
+export function chimeChangeLabel(mode: string, fixed: number, lo: number, hi: number): string {
+  if (mode !== "random") return "Chime every " + formatDelaySec(fixed) + " seconds";
+  if (lo === hi) return "Chime every " + formatDelaySec(lo) + " seconds";
+  return "Chime every " + formatDelaySec(lo) + " to " + formatDelaySec(hi) + " seconds";
+}
+
+export function ensureChime(raw: unknown): ChimeState {
+  const d = defaultChime();
+  if (!raw || typeof raw !== "object") return d;
+  const r = raw as Partial<ChimeState>;
+  const mode = r.mode === "random" ? "random" : "fixed";
+  let fixed: number = d.fixed;
+  if (!delaySingleErrors(asDelayStr(r.fixed), "Interval").length) {
+    fixed = parseNum(asDelayStr(r.fixed)) as number;
+  }
+  let lo = d.lo;
+  let hi = d.hi;
+  if (!delayRangeErrors(asDelayStr(r.lo), asDelayStr(r.hi)).length) {
+    lo = parseNum(asDelayStr(r.lo)) as number;
+    hi = parseNum(asDelayStr(r.hi)) as number;
+  }
+  return { mode, fixed, lo, hi };
 }
 
 export function nextChimeDelaySec(chime: ChimeState, random = Math.random): number {
-  if (chime.mode === "fixed") return clampChimeSec(chime.fixed, 30);
-  const lo = clampChimeSec(chime.lo, 5);
-  const hi = clampChimeSec(chime.hi, 10);
-  const a = Math.min(lo, hi);
-  const b = Math.max(lo, hi);
-  return a + random() * (b - a);
+  const c = ensureChime(chime);
+  if (c.mode === "fixed") return c.fixed;
+  return nextHalfStepSec(c.lo, c.hi, random);
 }
 
 export function formatChimeEta(leftMs: number, paused: boolean): string {
@@ -376,8 +436,7 @@ export function pauseItem(item: TimeItem, now = Date.now()): TimeItem {
 
 export function resetItem(item: TimeItem): TimeItem {
   if (item.type === "timer") {
-    const d = item.durationMs || 0;
-    return { ...item, running: false, runStartedAt: null, remainingMs: d, elapsedMs: 0 };
+    return { ...item, running: false, runStartedAt: null, remainingMs: 0, elapsedMs: 0 };
   }
   return { ...item, running: false, runStartedAt: null, elapsedMs: 0, laps: [] };
 }
@@ -395,6 +454,20 @@ export function addLap(item: TimeItem, now = Date.now()): TimeItem {
   const laps = item.laps || [];
   if (laps.length >= MAX_LAPS) return item;
   return { ...item, laps: laps.concat(displayStopwatchMs(item, now)) };
+}
+
+export function lapSplitMs(laps: number[] | undefined, index: number): number {
+  const list = laps || [];
+  const cur = Math.max(0, Number(list[index]) || 0);
+  const prev = index > 0 ? Math.max(0, Number(list[index - 1]) || 0) : 0;
+  return Math.max(0, cur - prev);
+}
+
+export function formatLapSplit(ms: number): string {
+  const t = Math.max(0, ms | 0);
+  const sec = Math.floor(t / 1000);
+  const us = (t % 1000) * 1000;
+  return sec + "." + String(us).padStart(6, "0");
 }
 
 export function clampTimeName(s: unknown): string {
@@ -469,11 +542,15 @@ export function newStatsItem(): StatsItem {
   return { id: nid("s"), name: "", pairs: padPairs([]) };
 }
 
+export function removeStatsItem(items: StatsItem[], id: string): StatsItem[] {
+  return (items || []).filter((x) => x.id !== id);
+}
+
 export function emptyState(): AppState {
   return {
     layout: { order: ["color"] },
     color: defaultColor(),
-    chime: { mode: "fixed", fixed: 30, lo: 5, hi: 10 },
+    chime: defaultChime(),
     time: { items: [] },
     stats: { items: [] },
   };
@@ -486,12 +563,7 @@ export function ensureState(raw: unknown): AppState {
   return {
     layout: { order: uniqueOrder(r.layout?.order ?? d.layout.order) },
     color: ensureColor(r.color),
-    chime: {
-      mode: r.chime?.mode === "random" ? "random" : "fixed",
-      fixed: clampChimeSec(r.chime?.fixed, 30),
-      lo: clampChimeSec(r.chime?.lo, 5),
-      hi: clampChimeSec(r.chime?.hi, 10),
-    },
+    chime: ensureChime(r.chime),
     time: {
       items: Array.isArray(r.time?.items)
         ? (r.time!.items as TimeItem[]).slice(0, MAX_SUB).map((x) => ({

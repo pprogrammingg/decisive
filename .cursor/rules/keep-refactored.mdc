@@ -8,7 +8,7 @@ alwaysApply: true
 Do not grow a single `index.html` script. After each feature, extract until files stay small and one-purpose.
 
 - **One concern per file:** `grid.js` is layout/order; `dialog.js` is overlays; `store.js` is JSON; `js/widgets/*.js` is one widget.
-- **Pure functions** for math and clamps (delay, interval 1–900, max 4 widgets, max 5 sub-widgets). Those get unit tests. DOM stays thin.
+- **Pure functions** for math and clamps (delay 0.5–900, max 4 widgets, max 5 sub-widgets). Those get unit tests. DOM stays thin.
 - **Reuse chrome:** confirm + settings dialogs come from `dialog.js` + `dialog.css`. Never a one-off modal per widget.
 - Delete dead code, unused CSS, and duplicate palettes. Rename when names lie.
 - If a function needs a paragraph of comments, split it.

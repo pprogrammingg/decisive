@@ -1,5 +1,4 @@
 import {
-  DELAY_STEP,
   SLOT_YELLOW,
   activePalette,
   colorChangeLabel,
@@ -7,12 +6,11 @@ import {
   isLightHex,
   lockRequiredSlots,
   nextColorDelayMs,
-  nudgeDelay,
-  padSlots,
   parseNum,
   pickedColors,
   slotLocked
 } from "../logic/color.js";
+import { delayField } from "../step-field.js";
 import { openForm } from "../dialog.js";
 
 export function mountColor(body, ctx) {
@@ -137,37 +135,4 @@ export function mountColor(body, ctx) {
       }
     }
   };
-}
-
-function delayField(id, value) {
-  const wrap = document.createElement("div");
-  wrap.className = "step-row";
-  const down = document.createElement("button");
-  down.type = "button";
-  down.className = "step-btn";
-  down.setAttribute("aria-label", "Decrease");
-  down.textContent = "−";
-  const inp = document.createElement("input");
-  inp.id = id;
-  inp.type = "number";
-  inp.min = "0.5";
-  inp.max = "900";
-  inp.step = "0.5";
-  inp.inputMode = "decimal";
-  inp.value = value;
-  const up = document.createElement("button");
-  up.type = "button";
-  up.className = "step-btn";
-  up.setAttribute("aria-label", "Increase");
-  up.textContent = "+";
-  down.onclick = () => {
-    inp.value = nudgeDelay(inp.value, -DELAY_STEP);
-    inp.dispatchEvent(new Event("input"));
-  };
-  up.onclick = () => {
-    inp.value = nudgeDelay(inp.value, DELAY_STEP);
-    inp.dispatchEvent(new Event("input"));
-  };
-  wrap.append(down, inp, up);
-  return Object.assign(inp, { wrap });
 }

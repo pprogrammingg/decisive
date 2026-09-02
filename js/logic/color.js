@@ -1,3 +1,23 @@
+import {
+  DELAY_MIN,
+  delayRangeErrors,
+  formatDelaySec,
+  nextHalfStepSec,
+  parseNum
+} from "./delay.js";
+
+export {
+  DELAY_MAX,
+  DELAY_MIN,
+  DELAY_STEP,
+  delayStepCount,
+  formatDelaySec,
+  isHalfStep,
+  nextHalfStepSec,
+  nudgeDelay,
+  parseNum
+} from "./delay.js";
+
 export const PALETTE = [
   "#FF6F61",
   "#8B9BFF",
@@ -10,9 +30,6 @@ export const PALETTE = [
 export const COLOR_SLOTS = 6;
 export const COLOR_MIN_PICKED = 2;
 export const COLOR_LOCKED = 2;
-export const DELAY_MIN = 0.5;
-export const DELAY_MAX = 900;
-export const DELAY_STEP = 0.5;
 export const SLOT_YELLOW = "#F5D547";
 export const SLOT_CORAL = "#FF6F61";
 
@@ -24,12 +41,8 @@ export function defaultColor() {
   };
 }
 
-export function parseNum(s) {
-  if (s == null) return null;
-  const t = String(s).trim();
-  if (!t) return null;
-  const x = +t;
-  return Number.isFinite(x) ? x : null;
+export function colorDelayErrors(loStr, hiStr) {
+  return delayRangeErrors(loStr, hiStr);
 }
 
 export function normalizeHex(raw) {
@@ -63,55 +76,12 @@ export function lockRequiredSlots(slots) {
   return out;
 }
 
-export function formatDelaySec(n) {
-  const x = Math.round(Number(n) * 2) / 2;
-  if (!Number.isFinite(x)) return "";
-  return Number.isInteger(x) ? String(x) : x.toFixed(1);
-}
-
-export function isHalfStep(n) {
-  if (!Number.isFinite(n)) return false;
-  return Math.abs(n * 2 - Math.round(n * 2)) < 1e-6;
-}
-
-export function nudgeDelay(str, delta) {
-  const n = parseNum(str);
-  const base = n === null ? DELAY_MIN : n;
-  const stepped = Math.round((base + delta) / DELAY_STEP) * DELAY_STEP;
-  const x = Math.min(DELAY_MAX, Math.max(DELAY_MIN, stepped));
-  return formatDelaySec(x);
-}
-
 export function colorSlotErrors(slots) {
   const n = pickedColors(slots).length;
   if (n >= COLOR_MIN_PICKED) return [];
   return [
     "Pick at least two colours. Empty cells are skipped — tap a cell to choose a colour, or ✕ to clear one."
   ];
-}
-
-export function colorDelayErrors(loStr, hiStr) {
-  const errors = [];
-  const lo = parseNum(loStr);
-  const hi = parseNum(hiStr);
-  if (lo === null) {
-    errors.push("Enter a min time, or use the arrows. Min must be at least 0.5 seconds.");
-  } else {
-    if (lo < DELAY_MIN) errors.push("Min must be at least 0.5 seconds.");
-    else if (lo > DELAY_MAX) errors.push("Min cannot be more than 900 seconds.");
-    else if (!isHalfStep(lo)) errors.push("Min must be in steps of 0.5 seconds (for example 1 or 1.5).");
-  }
-  if (hi === null) {
-    errors.push("Enter a max time, or use the arrows. Max can be up to 900 seconds.");
-  } else {
-    if (hi < DELAY_MIN) errors.push("Max must be at least 0.5 seconds.");
-    else if (hi > DELAY_MAX) errors.push("Max cannot be more than 900 seconds.");
-    else if (!isHalfStep(hi)) errors.push("Max must be in steps of 0.5 seconds (for example 1 or 1.5).");
-  }
-  if (lo !== null && hi !== null && lo > hi) {
-    errors.push("Min must be less than or equal to max.");
-  }
-  return errors;
 }
 
 export function colorSettingsErrors(color) {
@@ -133,7 +103,7 @@ export function colorDelayBounds(loStr, hiStr) {
 
 export function nextColorDelayMs(color, random = Math.random) {
   const z = colorDelayBounds(color && color.delayLo, color && color.delayHi);
-  return ((z.L + random() * (z.U - z.L)) * 1e3) | 0;
+  return (nextHalfStepSec(z.L, z.U, random) * 1e3) | 0;
 }
 
 export function activePalette(color) {

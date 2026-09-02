@@ -61,14 +61,15 @@
         { "task": 4, "text": "Confirm on save settings", "done": true },
         { "task": 5, "text": "Unit tests for delay and palette", "done": true },
         { "task": 6, "text": "Mobile colour cycle + settings", "done": true },
-        { "task": 7, "text": "UAT: Color change", "done": true }
+        { "task": 7, "text": "UAT: Color change", "done": true },
+        { "task": 8, "text": "Each wait is a 0.5s step from min to max inclusive", "done": true }
       ]
     },
     {
       "id": "interval-chime",
       "code": "IC001",
       "title": "Interval sound chime",
-      "description": "Fixed or random interval chime, 1–900 s, web audio + mobile haptic.",
+      "description": "Fixed or random interval chime; delay range matches Color (0.5–900 s, 0.5 steps).",
       "commits": ["b3a526b", "b467e43"],
       "subtasks": [
         { "task": 1, "text": "Gear: fixed or random 1–900 s", "done": true },
@@ -76,7 +77,8 @@
         { "task": 3, "text": "Confirm on save", "done": true },
         { "task": 4, "text": "Unit tests: clamp, next delay", "done": true },
         { "task": 5, "text": "Mobile audio / vibration + settings", "done": true },
-        { "task": 6, "text": "UAT: Interval sound chime", "done": true }
+        { "task": 6, "text": "UAT: Interval sound chime", "done": true },
+        { "task": 7, "text": "Min/max, labels, save-disable, 0.5s steps match Color", "done": true }
       ]
     },
     {
@@ -91,7 +93,9 @@
         { "task": 3, "text": "Remove sub-widget via confirm; persist", "done": true },
         { "task": 4, "text": "Unit tests: tick, laps, max 5", "done": true },
         { "task": 5, "text": "Mobile Time screen", "done": true },
-        { "task": 6, "text": "UAT: Time widget", "done": true }
+        { "task": 6, "text": "UAT: Time widget", "done": true },
+        { "task": 7, "text": "Timer Reset sets remaining to 0", "done": true },
+        { "task": 8, "text": "Lap table: elapsed + split; scroll after 10; cap 99", "done": true }
       ]
     },
     {
@@ -106,7 +110,8 @@
         { "task": 3, "text": "Remove via confirm", "done": true },
         { "task": 4, "text": "Unit tests: max 5, empty keys", "done": true },
         { "task": 5, "text": "Mobile Stats screen", "done": true },
-        { "task": 6, "text": "UAT: Stats", "done": true }
+        { "task": 6, "text": "UAT: Stats", "done": true },
+        { "task": 7, "text": "Tap name or ▦ opens sheet; ✕ on each chip removes", "done": true }
       ]
     },
     {

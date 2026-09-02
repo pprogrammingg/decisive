@@ -11,11 +11,13 @@ import {
   defaultColor,
   ensureColor,
   lockRequiredSlots,
+  nextColorDelayMs,
+  nextHalfStepSec,
   nudgeDelay,
   pickedColors,
   slotLocked
 } from "../js/logic/color.js";
-import { clampChimeSec, nextChimeDelaySec, ensureChime, formatChimeEta } from "../js/logic/chime.js";
+import { nextChimeDelaySec, ensureChime, formatChimeEta, chimeSettingsErrors, chimeChangeLabel } from "../js/logic/chime.js";
 import {
   addWidgets,
   canAdd,
@@ -36,9 +38,11 @@ import {
   canAddTimeItem,
   displayStopwatchMs,
   displayTimerMs,
+  formatLapSplit,
   formatStopwatch,
   formatTimer,
   hmsToMs,
+  lapSplitMs,
   MAX_LAPS,
   MAX_SUB,
   pauseItem,
@@ -56,6 +60,7 @@ import {
   statsLabel,
   clampStatsName,
   statsDisplayName,
+  removeStatsItem,
   renameStatsItem,
   MAX_STATS,
   STATS_PAIRS
@@ -80,6 +85,7 @@ describe("color settings", () => {
     assert.equal(locked[1], SLOT_CORAL);
     assert.equal(locked[2], "#00FF00");
   });
+  it("requires at least two colours", () => {
     const e = colorSlotErrors(["#FF0000", "", "", "", "", ""]);
     assert.equal(e.length, 1);
     assert.match(e[0], /at least two/i);
@@ -110,6 +116,17 @@ describe("color settings", () => {
     assert.deepEqual(colorDelayBounds("1", "4"), { L: 1, U: 4 });
     assert.deepEqual(colorDelayBounds("4", "1"), { L: 0.5, U: 3 });
   });
+  it("each wait is a 0.5s step from min to max inclusive", () => {
+    assert.equal(nextHalfStepSec(1, 2, () => 0), 1);
+    assert.equal(nextHalfStepSec(1, 2, () => 0.5), 1.5);
+    assert.equal(nextHalfStepSec(1, 2, () => 0.99), 2);
+    assert.equal(nextHalfStepSec(1, 2, () => 1), 2);
+    assert.equal(nextHalfStepSec(3, 3, () => 0.7), 3);
+    const c = ensureColor({ slots: ["#FF0000", "#00FF00"], delayLo: "1", delayHi: "2" });
+    assert.equal(nextColorDelayMs(c, () => 0), 1000);
+    assert.equal(nextColorDelayMs(c, () => 0.5), 1500);
+    assert.equal(nextColorDelayMs(c, () => 1), 2000);
+  });
   it("migrates old count to slots; keeps yellow+coral default", () => {
     const m = ensureColor({ count: 3, delayLo: "1", delayHi: "4" });
     assert.equal(pickedColors(m.slots).length, 3);
@@ -121,27 +138,31 @@ describe("color settings", () => {
 });
 
 describe("chime", () => {
-  it("clamps 1–900", () => {
-    assert.equal(clampChimeSec(0), 1);
-    assert.equal(clampChimeSec(901), 900);
-    assert.equal(clampChimeSec(7.4), 7);
-  });
   it("fixed delay is N seconds", () => {
     assert.equal(nextChimeDelaySec({ mode: "fixed", fixed: 12, lo: 1, hi: 2 }), 12);
+    assert.equal(nextChimeDelaySec({ mode: "fixed", fixed: 0.5, lo: 1, hi: 2 }), 0.5);
   });
-  it("random stays in range", () => {
-    const c = ensureChime({ mode: "random", lo: 5, hi: 10 });
-    const a = nextChimeDelaySec(c, () => 0);
-    const b = nextChimeDelaySec(c, () => 1);
-    const mid = nextChimeDelaySec(c, () => 0.5);
-    assert.equal(a, 5);
-    assert.equal(b, 10);
-    assert.equal(mid, 7.5);
+  it("random wait is a 0.5s step from min to max inclusive", () => {
+    const c = ensureChime({ mode: "random", lo: 1, hi: 2 });
+    assert.equal(nextChimeDelaySec(c, () => 0), 1);
+    assert.equal(nextChimeDelaySec(c, () => 0.5), 1.5);
+    assert.equal(nextChimeDelaySec(c, () => 1), 2);
   });
-  it("swaps lo/hi if reversed", () => {
-    const c = ensureChime({ mode: "random", lo: 10, hi: 5 });
-    assert.equal(c.lo, 5);
-    assert.equal(c.hi, 10);
+  it("min/max errors match color; reversed range is invalid", () => {
+    const bad = chimeSettingsErrors({ mode: "random", lo: "4", hi: "2" });
+    assert.ok(bad.some((m) => /less than or equal/i.test(m)));
+    assert.ok(chimeSettingsErrors({ mode: "fixed", fixed: "0.2" }).some((m) => /0\.5/.test(m)));
+    assert.ok(chimeSettingsErrors({ mode: "fixed", fixed: "1.2" }).some((m) => /0\.5/.test(m)));
+    assert.deepEqual(chimeSettingsErrors({ mode: "fixed", fixed: "0.5" }), []);
+    assert.deepEqual(chimeSettingsErrors({ mode: "random", lo: "1", hi: "2" }), []);
+    const kept = ensureChime({ mode: "random", lo: 4, hi: 2, fixed: 30 });
+    assert.equal(kept.lo, 5);
+    assert.equal(kept.hi, 10);
+  });
+  it("summary label", () => {
+    assert.equal(chimeChangeLabel("fixed", 5, 1, 2), "Chime every 5 seconds");
+    assert.equal(chimeChangeLabel("random", 30, 1, 2), "Chime every 1 to 2 seconds");
+    assert.equal(chimeChangeLabel("random", 30, 3, 3), "Chime every 3 seconds");
   });
   it("eta label pauses and ceils seconds", () => {
     assert.equal(formatChimeEta(12500, false), "next  13s");
@@ -203,6 +224,10 @@ describe("time sub-widgets", () => {
     it = pauseItem(it, 3000);
     assert.equal(it.remainingMs, 3000);
     assert.equal(it.running, false);
+    it = resetItem(it);
+    assert.equal(it.remainingMs, 0);
+    assert.equal(it.running, false);
+    assert.equal(it.runStartedAt, null);
   });
   it("stopwatch elapsed + laps", () => {
     let it = { type: "stopwatch", elapsedMs: 0, running: false, runStartedAt: null, laps: [] };
@@ -215,11 +240,19 @@ describe("time sub-widgets", () => {
     assert.equal(it.elapsedMs, 0);
     assert.deepEqual(it.laps, []);
   });
-  it("caps laps at 30 (3×10 grid)", () => {
+  it("lap split is delta to previous elapsed (sec.µs)", () => {
+    const laps = [1500, 4000, 4123];
+    assert.equal(lapSplitMs(laps, 0), 1500);
+    assert.equal(lapSplitMs(laps, 1), 2500);
+    assert.equal(formatLapSplit(1500), "1.500000");
+    assert.equal(formatLapSplit(2500), "2.500000");
+    assert.equal(formatLapSplit(123), "0.123000");
+  });
+  it("caps laps at MAX_LAPS (99)", () => {
     let it = { type: "stopwatch", elapsedMs: 0, running: false, runStartedAt: 0, laps: [] };
-    for (let i = 0; i < 40; i++) it = addLap(it, i * 100);
+    for (let i = 0; i < 120; i++) it = addLap(it, i * 100);
     assert.equal(it.laps.length, MAX_LAPS);
-    assert.equal(MAX_LAPS, 30);
+    assert.equal(MAX_LAPS, 99);
   });
   it("renames clamp to 15 chars", () => {
     assert.equal(TIME_NAME_MAX, 15);
@@ -249,6 +282,8 @@ describe("stats", () => {
     for (let i = 0; i < 9; i++) items = addStatsItem(items);
     assert.equal(items.length, MAX_STATS);
     assert.equal(canAddStats(items), false);
+    items = removeStatsItem(items, items[0].id);
+    assert.equal(items.length, MAX_STATS - 1);
     assert.equal(statsLabel(0), "stats1");
     assert.equal(statsLabel(4), "stats5");
   });

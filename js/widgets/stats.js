@@ -3,11 +3,14 @@ import {
   canAddStats,
   compactPairs,
   padPairs,
+  removeStatsItem,
   renameStatsItem,
+  STATS_NAME_MAX,
   statsDisplayName,
   statsLabel
 } from "../logic/stats.js";
-import { openChoices, openForm } from "../dialog.js";
+import { openChoices, openConfirm, openForm } from "../dialog.js";
+import { swapToLabelEdit } from "../label-edit.js";
 
 function btn(cls, text) {
   const b = document.createElement("button");
@@ -42,10 +45,32 @@ export function mountStats(body, ctx) {
       const chip = document.createElement("div");
       chip.className = "stats-chip";
       const nameBtn = btn("stats-name", statsDisplayName(it, i));
-      nameBtn.title = "Tap to rename";
+      nameBtn.title = "Open fields — long-press to rename";
+      nameBtn.setAttribute("aria-label", "Open " + statsDisplayName(it, i));
+      let holdTimer = 0;
+      let held = false;
+      const clearHold = () => {
+        if (holdTimer) clearTimeout(holdTimer);
+        holdTimer = 0;
+      };
+      nameBtn.addEventListener("pointerdown", () => {
+        held = false;
+        holdTimer = setTimeout(() => {
+          holdTimer = 0;
+          held = true;
+          startRename(nameBtn, it, i);
+        }, 550);
+      });
+      nameBtn.addEventListener("pointerup", clearHold);
+      nameBtn.addEventListener("pointerleave", clearHold);
+      nameBtn.addEventListener("pointercancel", clearHold);
       nameBtn.onclick = (e) => {
         e.stopPropagation();
-        startRename(chip, it, i);
+        if (held) {
+          held = false;
+          return;
+        }
+        editSheet(it.id);
       };
       const openBtn = btn("stats-open", "▦");
       openBtn.setAttribute("aria-label", "Open " + statsDisplayName(it, i) + " fields");
@@ -53,7 +78,21 @@ export function mountStats(body, ctx) {
         e.stopPropagation();
         editSheet(it.id);
       };
-      chip.append(nameBtn, openBtn);
+      const trash = btn("icon-btn", "✕");
+      trash.setAttribute("aria-label", "Remove " + statsDisplayName(it, i));
+      trash.onclick = async (e) => {
+        e.stopPropagation();
+        const ok = await openConfirm({
+          title: "Remove",
+          message: "Delete this stats sheet?",
+          okText: "Remove",
+          danger: true
+        });
+        if (!ok) return;
+        patch(removeStatsItem(items(), it.id));
+        renderList();
+      };
+      chip.append(nameBtn, openBtn, trash);
       grid.append(chip);
     });
     if (canAddStats(items())) {
@@ -68,36 +107,19 @@ export function mountStats(body, ctx) {
     }
   }
 
-  function startRename(chip, it, index) {
+  function startRename(nameBtn, it, index) {
     editingId = it.id;
-    const input = document.createElement("input");
-    input.className = "stats-name-input";
-    input.type = "text";
-    input.maxLength = 10;
-    input.autocomplete = "off";
-    input.spellcheck = false;
-    input.value = statsDisplayName(it, index);
-    input.setAttribute("aria-label", "Sheet name");
-    chip.replaceChildren(input);
-    input.focus();
-    input.select();
-    let done = false;
-    const finish = (save) => {
-      if (done) return;
-      done = true;
-      editingId = null;
-      if (save) patch(renameStatsItem(items(), it.id, input.value));
-      else renderList();
-    };
-    input.addEventListener("blur", () => finish(true));
-    input.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        input.blur();
-      }
-      if (e.key === "Escape") {
-        e.preventDefault();
-        finish(false);
+    swapToLabelEdit(nameBtn, {
+      value: statsDisplayName(it, index),
+      maxLen: STATS_NAME_MAX,
+      ariaLabel: "Sheet name",
+      onCommit(v) {
+        editingId = null;
+        patch(renameStatsItem(items(), it.id, v));
+      },
+      onCancel() {
+        editingId = null;
+        renderList();
       }
     });
   }

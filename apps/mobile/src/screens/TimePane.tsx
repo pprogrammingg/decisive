@@ -5,11 +5,12 @@ import {
   addMinute,
   displayStopwatchMs,
   displayTimerMs,
+  formatLapSplit,
   formatStopwatch,
   formatTimer,
   hmsToMs,
-  LAP_COLS,
   LAP_ROWS,
+  lapSplitMs,
   MAX_SUB,
   newTimeItem,
   pauseItem,
@@ -149,24 +150,27 @@ export function TimePane({
           {isTimer ? <Act label="+1:00" onPress={() => patch(open.id, addMinute)} /> : null}
         </View>
         {!isTimer ? (
-          <View style={styles.lapGrid}>
-            {Array.from({ length: LAP_COLS }, (_, col) => (
-              <View key={col} style={[styles.lapCol, col > 0 && styles.lapColRule]}>
-                {Array.from({ length: LAP_ROWS }, (_, row) => {
-                  const i = col * LAP_ROWS + row;
-                  const ms = laps[i];
-                  const on = i === laps.length - 1 && ms != null;
-                  return (
-                    <View key={i} style={styles.lapCell}>
-                      <Text style={[styles.lapN, on && styles.lapNOn]}>{i + 1}</Text>
-                      <Text style={[styles.lapT, ms != null && styles.lapFilled, on && styles.lapOn]}>
-                        {ms != null ? formatStopwatch(ms) : "––:––.––"}
-                      </Text>
-                    </View>
-                  );
-                })}
-              </View>
-            ))}
+          <View style={styles.lapBox}>
+            <View style={styles.lapHead}>
+              <Text style={styles.lapH}>elapsed</Text>
+              <Text style={[styles.lapH, styles.lapHRight]}>split</Text>
+            </View>
+            <ScrollView style={styles.lapWrap} nestedScrollEnabled>
+              {Array.from({ length: Math.max(laps.length, LAP_ROWS) }, (_, i) => {
+                const ms = laps[i];
+                const on = i === laps.length - 1 && ms != null;
+                return (
+                  <View key={i} style={styles.lapRow}>
+                    <Text style={[styles.lapT, ms != null && styles.lapFilled, on && styles.lapOn]}>
+                      {ms != null ? formatStopwatch(ms) : "––:––.––"}
+                    </Text>
+                    <Text style={[styles.lapT, styles.lapSplit, ms != null && styles.lapFilled, on && styles.lapOn]}>
+                      {ms != null ? formatLapSplit(lapSplitMs(laps, i)) : "–.––––––"}
+                    </Text>
+                  </View>
+                );
+              })}
+            </ScrollView>
           </View>
         ) : null}
       </View>
@@ -186,7 +190,7 @@ export function TimePane({
               onChangeText={setDraftName}
               onBlur={() => commitName(it)}
               onSubmitEditing={() => commitName(it)}
-              selectTextOnFocus
+              selectionColor="transparent"
             />
           ) : (
             <Pressable
@@ -271,39 +275,50 @@ const styles = StyleSheet.create({
   itemOpen: { flex: 1, alignItems: "flex-end", justifyContent: "center", minWidth: 0, paddingVertical: 4 },
   itemT: { color: colors.cream, fontWeight: "700" },
   itemInput: {
-    flex: 1,
+    width: 132,
+    maxWidth: 132,
+    flexGrow: 0,
+    flexShrink: 0,
     color: colors.cream,
     fontWeight: "800",
-    backgroundColor: "#0c0d14",
-    borderRadius: 10,
+    backgroundColor: colors.ink,
+    borderRadius: 8,
     paddingHorizontal: 8,
-    paddingVertical: 8,
+    paddingVertical: 6,
     borderWidth: 1,
-    borderColor: colors.magenta,
+    borderColor: "#ffffff1f",
   },
   meta: { color: colors.muted, fontVariant: ["tabular-nums"] },
   add: { padding: 14, borderRadius: 14, borderWidth: 1, borderStyle: "dashed", borderColor: colors.periwinkle, alignItems: "center" },
   pressRow: { backgroundColor: colors.pressActive, transform: [{ scale: 0.98 }] },
   addT: { color: colors.periwinkle, fontWeight: "700" },
-  lapGrid: {
+  lapBox: {
     flex: 1,
-    flexDirection: "row",
-    alignSelf: "center",
     minHeight: 0,
+    alignSelf: "center",
+    width: "92%",
     marginTop: 8,
     marginBottom: 8,
     borderWidth: 1,
     borderColor: "#ffffff14",
     borderRadius: 12,
     backgroundColor: "#ffffff08",
-    paddingVertical: 4,
+    overflow: "hidden",
   },
-  lapCol: { justifyContent: "space-evenly", paddingHorizontal: 10 },
-  lapColRule: { borderLeftWidth: 1, borderLeftColor: "#ffffff14" },
-  lapCell: { flexDirection: "row", alignItems: "center", gap: 6 },
-  lapN: { width: 16, textAlign: "right", color: colors.muted, fontSize: 10, fontWeight: "700", opacity: 0.45 },
-  lapNOn: { color: colors.periwinkle, opacity: 1 },
+  lapHead: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ffffff14",
+  },
+  lapH: { color: colors.muted, fontSize: 10, fontWeight: "700", letterSpacing: 1, textTransform: "uppercase" },
+  lapHRight: { textAlign: "right" },
+  lapWrap: { maxHeight: 10 * 22 },
+  lapRow: { flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 12, height: 22, alignItems: "center" },
   lapT: { color: colors.muted, fontSize: 12, fontVariant: ["tabular-nums"], letterSpacing: 0.4, opacity: 0.28 },
+  lapSplit: { textAlign: "right" },
   lapFilled: { opacity: 0.85, color: colors.cream },
   lapOn: { opacity: 1, color: colors.cream, fontWeight: "700" },
   muted: { color: colors.muted, textAlign: "center" },

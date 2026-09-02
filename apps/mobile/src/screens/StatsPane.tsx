@@ -6,6 +6,8 @@ import {
   MAX_STATS,
   newStatsItem,
   padPairs,
+  removeStatsItem,
+  STATS_NAME_MAX,
   statsDisplayName,
   statsLabel,
   type StatsItem,
@@ -109,17 +111,18 @@ export function StatsPane({
             <TextInput
               style={styles.chipInput}
               autoFocus
-              maxLength={10}
+              maxLength={STATS_NAME_MAX}
               value={draftName}
               onChangeText={setDraftName}
               onBlur={() => commitName(it)}
               onSubmitEditing={() => commitName(it)}
-              selectTextOnFocus
+              selectionColor="transparent"
             />
           ) : (
             <Pressable
-              style={styles.chipName}
-              onPress={() => {
+              style={({ pressed }) => [styles.chipName, pressed && styles.pressRow]}
+              onPress={() => openItem(it)}
+              onLongPress={() => {
                 setDraftName(statsDisplayName(it, i));
                 setEditingId(it.id);
               }}
@@ -132,6 +135,24 @@ export function StatsPane({
             onPress={() => openItem(it)}
           >
             <Text style={styles.chipOpenT}>▦</Text>
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [styles.chipOpen, pressed && styles.pressIcon]}
+            onPress={() =>
+              Alert.alert("Remove", "Delete this stats sheet?", [
+                { text: "Cancel", style: "cancel" },
+                {
+                  text: "Remove",
+                  style: "destructive",
+                  onPress: () => {
+                    if (openId === it.id) setOpenId(null);
+                    onChange(removeStatsItem(items, it.id));
+                  },
+                },
+              ])
+            }
+          >
+            <Text style={styles.chipX}>✕</Text>
           </Pressable>
         </View>
       ))}
@@ -164,21 +185,25 @@ const styles = StyleSheet.create({
   chipName: { flex: 1, minHeight: 36, justifyContent: "center" },
   chipT: { color: colors.cream, fontWeight: "800", letterSpacing: 1 },
   chipInput: {
-    flex: 1,
+    width: 132,
+    maxWidth: 132,
+    flexGrow: 0,
+    flexShrink: 0,
     color: colors.cream,
     fontWeight: "800",
     letterSpacing: 1,
-    backgroundColor: "#0c0d14",
-    borderRadius: 10,
+    backgroundColor: colors.ink,
+    borderRadius: 8,
     paddingHorizontal: 8,
-    paddingVertical: 8,
+    paddingVertical: 6,
     borderWidth: 1,
-    borderColor: colors.teal,
-    textAlign: "center",
+    borderColor: "#ffffff1f",
+    textAlign: "left",
   },
   chipOpen: { width: 36, height: 36, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.08)", alignItems: "center", justifyContent: "center" },
   pressIcon: { backgroundColor: colors.pressActive, transform: [{ scale: 0.92 }] },
   chipOpenT: { color: colors.teal, fontSize: 16 },
+  chipX: { color: colors.cream, fontSize: 14, fontWeight: "700" },
   add: { width: "100%", padding: 14, borderRadius: 14, borderWidth: 1, borderStyle: "dashed", borderColor: colors.periwinkle, alignItems: "center" },
   pressRow: { backgroundColor: colors.pressActive, transform: [{ scale: 0.98 }] },
   addT: { color: colors.periwinkle, fontWeight: "700" },

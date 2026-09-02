@@ -168,6 +168,7 @@ Most of this already lives in `index.html`. Wrap it as a widget; do not rewrite 
 - [x] **CC001-5** — Unit tests: keep / port delay-bound tests; add palette-count clamp.
 - [x] **CC001-6** — Mobile: same cycle + settings.
 - [x] **CC001-7** — **UAT:** Color change
+- [x] **CC001-8** — Each colour flip waits a new 0.5s step from min to max inclusive (e.g. 1–2 → 1, 1.5, or 2).
 
 Slot pickers and delay steppers are **UX001**, not a rewrite of this epic.
 
@@ -177,12 +178,13 @@ Slot pickers and delay steppers are **UX001**, not a rewrite of this epic.
 
 A chime on a timer. Runs even when the widget is shrunk.
 
-- [x] **IC001-1** — Gear: **fixed** every N seconds, or **random** between lo–hi. Range **1–900 s**. Random example: 5–10 s → chime at 7s, then 6s, then 10s, then 5s (new draw after each chime).
+- [x] **IC001-1** — Gear: **fixed** every N seconds, or **random** min–max. (Range now 0.5–900 s / 0.5 steps — see **IC001-7**.)
 - [x] **IC001-2** — Short, clear chime (Web Audio or a tiny bundled sound). Respect autoplay: start after a user gesture if the browser blocks it; show a quiet “tap to enable sound” in the widget if needed.
 - [x] **IC001-3** — Confirm on save settings.
-- [x] **IC001-4** — Unit tests: clamp 1–900, fixed vs random next-delay.
+- [x] **IC001-4** — Unit tests: delay validation, fixed vs random next-delay.
 - [x] **IC001-5** — Mobile: `Audio` / Expo AV; same settings.
 - [x] **IC001-6** — **UAT:** Interval sound chime
+- [x] **IC001-7** — Min/max, labels, save-disable, and 0.5s waits match Color.
 
 Louder chime is **UX001-5**.
 
@@ -198,6 +200,8 @@ The time widget is a **list of sub-widgets** (max **5**). Types: **timer** and *
 - [x] **TM001-4** — Unit tests: tick math, lap list, max-5.
 - [x] **TM001-5** — Mobile: same Android-like layout (RN views, not a WebView of the page).
 - [x] **TM001-6** — **UAT:** Time widget
+- [x] **TM001-7** — Timer **Reset** sets remaining to **0** (Start still uses the set duration).
+- [x] **TM001-8** — Stopwatch laps: two columns (elapsed | split in seconds.microseconds); table scrolls after 10 rows; cap 99.
 
 ---
 
@@ -211,6 +215,7 @@ Field notes: last name, first name, keep-ups, sprint speed, etc.
 - [x] **ST001-4** — Unit tests: max 5, 10 pairs, empty keys ignored on save.
 - [x] **ST001-5** — Mobile: same buttons + 10×2 fields.
 - [x] **ST001-6** — **UAT:** Stats
+- [x] **ST001-7** — Tap the sheet name or ▦ to open fields; **✕** on each chip removes (confirm). Long-press the name to rename.
 
 ---
 

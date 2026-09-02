@@ -37,9 +37,10 @@ Fill `pass` as you run. Deployed URL: GitHub Pages (`https://<user>.github.io/<r
 2. Expand Color, tap gear. Expected: 2×3 colour cells (first two filled with **no ✕**, rest **None**); **Min** / **Max** with − / + in 0.5 steps. Clicking the dimmed area around the box does not close it; only **Save** or **Cancel**.
 3. Try to clear the first two cells. Expected: no ✕; they stay selected. Extra cells can be cleared.
 4. Restore two colours. Set min `4`, max `2`. Expected: error *Min must be less than or equal to max*; **Save** disabled.
-5. Set min `0.5`, max `3`. Expected: *Change between 2 colors every 0.5 to 3 seconds*; **Save** enabled. Save, confirm.
-6. Set min = max (e.g. both `2`). Expected: *Change between N colors every 2 seconds*.
-7. Shrink the widget. Expected: colour still cycles in the cell.
+5. Set min `0.5`, max `3`. Expected: *Change between 2 colors every 0.5 to 3 seconds*; **Save** enabled. Save, confirm. Each flip waits 0.5, 1, 1.5, …, or 3 seconds (new draw every time), then a random chosen colour.
+6. Set min `1`, max `2`. Expected: waits are only **1**, **1.5**, or **2** seconds — not values like 1.23.
+7. Set min = max (e.g. both `2`). Expected: *Change between N colors every 2 seconds*; every flip is exactly 2 s.
+8. Shrink the widget. Expected: colour still cycles in the cell.
 
 ### GitHub Pages (github.io)
 1. Open Pages, expand Color, change delay, Save, refresh.
@@ -55,17 +56,18 @@ Fill `pass` as you run. Deployed URL: GitHub Pages (`https://<user>.github.io/<r
 
 ### Localhost
 1. Add Interval chime. Tap **Tap to enable sound** if shown (or tap the page once).
-2. Expand, gear: **Fixed** 5s, Save. Expected: a short chime about every 5s, even when shrunk.
-3. Set **Random** 5–10s, Save. Expected: gaps vary between 5 and 10 seconds.
-4. Try 1 and 900. Expected: values clamp; invalid input does not crash.
-5. On the widget face, tap the circular **pause** control (Phosphor bars, not a bell). Expected: countdown freezes on **paused  Ns**, chime stops. Tap again (play triangle). Expected: countdown resumes from the remaining time and chimes continue.
+2. Expand, gear: **Fixed** or **Random**. Expected: **Every (s)** or **Min (s)** / **Max (s)** with − / + in 0.5 steps (0.5–900). Summary *Chime every … seconds*. Clicking the dimmed area does not close it; only **Save** or **Cancel**.
+3. Set **Fixed** 5s, Save. Expected: a short chime about every 5s, even when shrunk.
+4. Set **Random** min `1`, max `2`. Expected: *Chime every 1 to 2 seconds*; waits are 1, 1.5, or 2 s. Set min `4`, max `2`. Expected: error *Min must be less than or equal to max*; **Save** disabled.
+5. Set min = max (e.g. both `2`). Expected: *Chime every 2 seconds*.
+6. On the widget face, tap the circular **pause** control (Phosphor bars, not a bell). Expected: countdown freezes on **paused  Ns**, chime stops. Tap again (play triangle). Expected: countdown resumes from the remaining time and chimes continue.
 
 ### GitHub Pages (github.io)
 1. Add chime, enable sound (browser gesture), set a short fixed interval.
 2. Expected: chime plays; settings survive refresh.
 
 ### Mobile app
-1. Add chime, set fixed/random 1–900s.
+1. Add chime, set fixed/random 0.5–900s (0.5 steps; Save disabled on errors).
 2. Expected: haptic/vibration pulse on interval (and visual flash); runs in the background of the grid.
 3. Tap pause, then resume. Expected: interval holds while paused and continues from remaining time.
 
@@ -77,17 +79,18 @@ Fill `pass` as you run. Deployed URL: GitHub Pages (`https://<user>.github.io/<r
 1. Add Time. Tap **+ Add timer or stopwatch**, pick Timer. Repeat for Stopwatch. Add up to 5. Expected: sixth add is not offered.
 2. Double-click the time (not the name) on a Timer row. Expected: that clock’s settings open (h/m/s, Start / Pause / Reset / +1:00).
 3. Start a short timer. Expected: counts down; at 0 it stops and plays a done tone.
-4. Open Stopwatch: Start, **Lap**, Pause. Expected: each Lap fills the next cell in a **3-column × 10-row** grid (down the first column, then the next). No Laps sheet. Reset clears the grid. The 31st Lap does not add.
-5. Tap a **Timer 1** / **Stopwatch 1** label (not the digits). Type a name (max 15). Blur or Enter. Expected: label updates; empty falls back to Timer 1 / Stopwatch 1.
-6. Remove a sub-widget. Expected: themed confirm, then gone. Refresh restores remaining items.
+4. Start a timer, then **Reset**. Expected: display is **00:00** (not the original duration). **Start** runs from the h/m/s duration again.
+5. Open Stopwatch: Start, **Lap**, Pause. Expected: each Lap adds a row with **elapsed** and **split** (seconds.microseconds vs the previous lap, or vs 0 for the first). The table shows 10 rows then **scrolls**. Reset clears the table. The 100th Lap does not add.
+6. Tap a **Timer 1** / **Stopwatch 1** label (not the digits). Type a name (max 15). Blur or Enter. Expected: label updates; empty falls back to Timer 1 / Stopwatch 1.
+7. Remove a sub-widget. Expected: themed confirm, then gone. Refresh restores remaining items.
 
 ### GitHub Pages (github.io)
 1. Create a timer and a stopwatch with a lap, refresh.
 2. Expected: list and values restore; running clocks continue from saved timestamps.
 
 ### Mobile app
-1. Same add/list/detail flow (not a WebView). Double-tap the time (not the name) to open that clock. Stopwatch shows a 3×10 lap grid; tap the name to rename (max 15).
-2. Expected: max 5; confirm on delete.
+1. Same add/list/detail flow (not a WebView). Double-tap the time (not the name) to open that clock. Stopwatch shows a two-column lap table (elapsed | split) that scrolls after 10 rows; tap the name to rename (max 15).
+2. Expected: max 5; confirm on delete. Timer **Reset** goes to 00:00; **Start** uses the set duration.
 
 ---
 
@@ -95,9 +98,10 @@ Fill `pass` as you run. Deployed URL: GitHub Pages (`https://<user>.github.io/<r
 
 ### Localhost
 1. Add Stats. Tap **+ Add stats1**. Expected: button **stats1**. Add up to **stats5**; no sixth.
-2. Tap stats1. Expected: 10 key and 10 value fields. Enter last name / first name / keep-ups, Save (confirm).
+2. Tap the **stats1** name (or ▦). Expected: 10 key and 10 value fields. Enter last name / first name / keep-ups, Save (confirm).
 3. Reopen. Expected: empty keys omitted from saved pairs; remaining keys still there.
-4. Delete a sheet. Expected: confirm; buttons renumber stats1… in order.
+4. Long-press the name. Expected: it becomes an input (max 10). Empty falls back to statsN.
+5. Tap **✕** on a chip. Expected: confirm, then that sheet is gone; remaining chips use stats1… in list order.
 
 ### GitHub Pages (github.io)
 1. Save stats pairs, refresh.
@@ -105,7 +109,7 @@ Fill `pass` as you run. Deployed URL: GitHub Pages (`https://<user>.github.io/<r
 
 ### Mobile app
 1. Same statsN buttons and 10×2 fields, persist on device.
-2. Expected: max 5 sheets; confirm on delete and save.
+2. Expected: max 5 sheets; tap name or ▦ opens fields; ✕ confirms delete; long-press name to rename.
 
 ---
 

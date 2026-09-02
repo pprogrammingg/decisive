@@ -6,9 +6,11 @@ import {
   displayStopwatchMs,
   displayTimerMs,
   formatStopwatch,
+  formatLapSplit,
+  lapSplitMs,
   formatTimer,
   hmsToMs,
-  MAX_LAPS,
+  LAP_ROWS,
   msToHms,
   pauseItem,
   renameTimeItem,
@@ -20,6 +22,7 @@ import {
 } from "../logic/time.js";
 import { openChoices, openConfirm } from "../dialog.js";
 import { playDone, unlockAudio } from "../sound.js";
+import { swapToLabelEdit } from "../label-edit.js";
 
 function btn(cls, text) {
   const b = document.createElement("button");
@@ -27,6 +30,36 @@ function btn(cls, text) {
   b.type = "button";
   b.textContent = text;
   return b;
+}
+
+function syncLapTable(table, laps) {
+  const tb = table.tBodies[0];
+  if (!tb) return;
+  const wrap = table.parentElement;
+  const filled = (laps || []).length;
+  const was = Number(table.dataset.n || 0);
+  const n = Math.max(filled, LAP_ROWS);
+  while (tb.rows.length < n) {
+    const tr = document.createElement("tr");
+    const a = document.createElement("td");
+    a.className = "lap-elapsed";
+    const b = document.createElement("td");
+    b.className = "lap-split";
+    tr.append(a, b);
+    tb.append(tr);
+  }
+  while (tb.rows.length > n) tb.deleteRow(-1);
+  const last = filled - 1;
+  for (let i = 0; i < n; i++) {
+    const tr = tb.rows[i];
+    const has = i < filled;
+    tr.classList.toggle("is-filled", has);
+    tr.classList.toggle("is-on", has && i === last);
+    tr.cells[0].textContent = has ? formatStopwatch(laps[i]) : "";
+    tr.cells[1].textContent = has ? formatLapSplit(lapSplitMs(laps, i)) : "";
+  }
+  table.dataset.n = String(filled);
+  if (wrap && filled > LAP_ROWS && filled > was) wrap.scrollTop = wrap.scrollHeight;
 }
 
 export function mountTime(body, ctx) {
@@ -120,34 +153,17 @@ export function mountTime(body, ctx) {
 
   function startRename(nameBtn, it, index) {
     editingId = it.id;
-    const input = document.createElement("input");
-    input.className = "time-name-input";
-    input.type = "text";
-    input.maxLength = String(TIME_NAME_MAX);
-    input.autocomplete = "off";
-    input.spellcheck = false;
-    input.value = timeDisplayName(it, index);
-    input.setAttribute("aria-label", "Clock name");
-    nameBtn.replaceWith(input);
-    input.focus();
-    input.select();
-    let done = false;
-    const finish = (save) => {
-      if (done) return;
-      done = true;
-      editingId = null;
-      if (save) patchItems(renameTimeItem(items(), it.id, input.value));
-      else renderList();
-    };
-    input.addEventListener("blur", () => finish(true));
-    input.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        input.blur();
-      }
-      if (e.key === "Escape") {
-        e.preventDefault();
-        finish(false);
+    swapToLabelEdit(nameBtn, {
+      value: timeDisplayName(it, index),
+      maxLen: TIME_NAME_MAX,
+      ariaLabel: "Clock name",
+      onCommit(v) {
+        editingId = null;
+        patchItems(renameTimeItem(items(), it.id, v));
+      },
+      onCancel() {
+        editingId = null;
+        renderList();
       }
     });
   }
@@ -234,20 +250,23 @@ export function mountTime(body, ctx) {
       reset.onclick = () => updateItem(it.id, resetItem);
       lap.onclick = () => updateItem(it.id, (x) => addLap(x));
       actions.append(start, pause, lap, reset);
-      const grid = document.createElement("div");
-      grid.className = "lap-grid";
-      for (let i = 0; i < MAX_LAPS; i++) {
-        const cell = document.createElement("div");
-        cell.className = "lap-cell";
-        const n = document.createElement("span");
-        n.className = "lap-n";
-        n.textContent = String(i + 1);
-        const t = document.createElement("span");
-        t.className = "lap-t";
-        cell.append(n, t);
-        grid.append(cell);
-      }
-      clock.append(grid);
+      const wrap = document.createElement("div");
+      wrap.className = "lap-wrap";
+      const table = document.createElement("table");
+      table.className = "lap-table";
+      const head = document.createElement("thead");
+      const hr = document.createElement("tr");
+      const h1 = document.createElement("th");
+      h1.textContent = "elapsed";
+      const h2 = document.createElement("th");
+      h2.textContent = "split";
+      hr.append(h1, h2);
+      head.append(hr);
+      const body = document.createElement("tbody");
+      table.append(head, body);
+      wrap.append(table);
+      clock.append(wrap);
+      syncLapTable(table, it.laps || []);
     }
   }
 
@@ -279,15 +298,11 @@ export function mountTime(body, ctx) {
           : formatStopwatch(displayStopwatchMs(it, now));
       }
       if (it && it.type === "stopwatch") {
-        const laps = it.laps || [];
-        const last = laps.length - 1;
-        detail.querySelectorAll(".lap-cell").forEach((cell, i) => {
-          const ms = laps[i];
-          const t = cell.querySelector(".lap-t");
-          if (t) t.textContent = ms != null ? formatStopwatch(ms) : "";
-          cell.classList.toggle("is-filled", ms != null);
-          cell.classList.toggle("is-on", i === last && ms != null);
-        });
+        const table = detail.querySelector(".lap-table");
+        if (table) {
+          const laps = it.laps || [];
+          syncLapTable(table, laps);
+        }
       }
     }
     raf = requestAnimationFrame(tickDisplay);

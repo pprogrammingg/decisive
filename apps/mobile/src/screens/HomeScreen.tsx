@@ -5,15 +5,17 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  TextInput,
   useWindowDimensions,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native";
 import {
-  clampChimeSec,
+  chimeChangeLabel,
+  chimeSettingsErrors,
   commitPicker,
+  formatDelaySec,
   MAX_WIDGETS,
+  parseNum,
   removeWidget,
   swapWidgets,
   togglePending,
@@ -25,7 +27,7 @@ import {
 import { IconHit, PhIcon } from "../icons";
 import { useAppState } from "../state/AppStateContext";
 import { colors } from "../theme";
-import { ColorPane, ColorSettings } from "./ColorPane";
+import { ColorPane, ColorSettings, StepRow } from "./ColorPane";
 import { ChimePane } from "./ChimePane";
 import { StatsPane } from "./StatsPane";
 import { TimePane } from "./TimePane";
@@ -273,16 +275,22 @@ function InfoPop({
 function ChimeSettings({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   const { state, update } = useAppState();
   const [mode, setMode] = useState(state.chime.mode);
-  const [fixed, setFixed] = useState(String(state.chime.fixed));
-  const [lo, setLo] = useState(String(state.chime.lo));
-  const [hi, setHi] = useState(String(state.chime.hi));
+  const [fixed, setFixed] = useState(formatDelaySec(state.chime.fixed));
+  const [lo, setLo] = useState(formatDelaySec(state.chime.lo));
+  const [hi, setHi] = useState(formatDelaySec(state.chime.hi));
   useEffect(() => {
     if (!visible) return;
     setMode(state.chime.mode);
-    setFixed(String(state.chime.fixed));
-    setLo(String(state.chime.lo));
-    setHi(String(state.chime.hi));
+    setFixed(formatDelaySec(state.chime.fixed));
+    setLo(formatDelaySec(state.chime.lo));
+    setHi(formatDelaySec(state.chime.hi));
   }, [visible, state.chime.mode, state.chime.fixed, state.chime.lo, state.chime.hi]);
+  const errors = chimeSettingsErrors({ mode, fixed, lo, hi });
+  const a = parseNum(fixed);
+  const b = parseNum(lo);
+  const c = parseNum(hi);
+  const summary =
+    errors.length || a == null || b == null || c == null ? "" : chimeChangeLabel(mode, a, b, c);
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.overlay}>
@@ -298,21 +306,28 @@ function ChimeSettings({ visible, onClose }: { visible: boolean; onClose: () => 
           </View>
           {mode === "fixed" ? (
             <>
-              <Text style={styles.muted}>Every N seconds (1–900)</Text>
-              <TextInput style={styles.inp} keyboardType="number-pad" value={fixed} onChangeText={setFixed} />
+              <Text style={styles.field}>Every (s)</Text>
+              <StepRow value={fixed} onChange={setFixed} />
             </>
           ) : (
             <>
-              <Text style={styles.muted}>Random lower (s)</Text>
-              <TextInput style={styles.inp} keyboardType="number-pad" value={lo} onChangeText={setLo} />
-              <Text style={styles.muted}>Random upper (s)</Text>
-              <TextInput style={styles.inp} keyboardType="number-pad" value={hi} onChangeText={setHi} />
+              <Text style={styles.field}>Min (s)</Text>
+              <StepRow value={lo} onChange={setLo} />
+              <Text style={styles.field}>Max (s)</Text>
+              <StepRow value={hi} onChange={setHi} />
             </>
           )}
+          {errors.length
+            ? errors.map((msg) => (
+                <Text key={msg} style={styles.err}>{msg}</Text>
+              ))
+            : <Text style={styles.hint}>{summary}</Text>}
           <View style={styles.actions}>
             <Pressable onPress={onClose}><Text style={styles.muted}>Cancel</Text></Pressable>
             <Pressable
-              onPress={() =>
+              disabled={!!errors.length}
+              onPress={() => {
+                if (errors.length) return;
                 Alert.alert("Save settings", "Save these settings?", [
                   { text: "Cancel", style: "cancel" },
                   {
@@ -320,17 +335,17 @@ function ChimeSettings({ visible, onClose }: { visible: boolean; onClose: () => 
                     onPress: () => {
                       update((s) => {
                         s.chime.mode = mode;
-                        s.chime.fixed = clampChimeSec(fixed, 30);
-                        s.chime.lo = clampChimeSec(lo, 5);
-                        s.chime.hi = clampChimeSec(hi, 10);
+                        s.chime.fixed = parseNum(fixed) as number;
+                        s.chime.lo = parseNum(lo) as number;
+                        s.chime.hi = parseNum(hi) as number;
                       });
                       onClose();
                     },
                   },
-                ])
-              }
+                ]);
+              }}
             >
-              <Text style={styles.save}>Save</Text>
+              <Text style={[styles.save, errors.length ? styles.saveOff : null]}>Save</Text>
             </Pressable>
           </View>
         </View>
@@ -403,6 +418,9 @@ const styles = StyleSheet.create({
   addB: { backgroundColor: "#fff", borderWidth: 2, borderColor: colors.addBlue },
   actions: { flexDirection: "row", justifyContent: "flex-end", gap: 16, marginTop: 8 },
   save: { color: colors.magenta, fontWeight: "800" },
+  saveOff: { opacity: 0.38 },
+  field: { color: colors.muted, fontSize: 12, fontWeight: "700", letterSpacing: 1, textTransform: "uppercase" },
+  err: { color: colors.danger, fontWeight: "650", fontSize: 13 },
   inp: { backgroundColor: "#0008", color: colors.cream, borderRadius: 10, padding: 10 },
   hint: { color: colors.periwinkle, fontWeight: "700" },
   seg: { flexDirection: "row", gap: 8 },

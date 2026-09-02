@@ -12,7 +12,7 @@ Training is full of split-second choices (pass or hold, left or right, go or wai
 |---|---|
 | **Color change** | Reaction and decision drills. The fill flips on a delay; you name the colour (or the action it means) before it changes. |
 | **Interval chime** | Beep on a fixed or random beat — work/rest, keep-ups, shuttle touches — pause when you talk. |
-| **Time** | Up to five timers and stopwatches (laps on a 3×10 grid). Rename clocks (max 15 characters); double-click the time to open that clock. |
+| **Time** | Up to five timers and stopwatches (laps: elapsed + split). Rename clocks (max 15 characters); double-click the time to open that clock. |
 | **Stats** | Ten key/value fields per sheet — last name, first name, keep-ups, split. Rename the sheet (max 10 characters). |
 
 Add what the session needs, expand one tool to full screen, shrink it and it **keeps running**. Layout and numbers persist on refresh (and in the Expo app).
@@ -124,7 +124,7 @@ Reload the page/app: layout and settings come back.
 
 Full-cell colour drills. Defaults: a cool yellow and coral orange; other slots empty.
 
-1. It is on the board by default. The fill flips after a random wait between **min** and **max**.
+1. It is on the board by default. Each flip waits a **new** random time: a **0.5 s** step from **min** to **max**, inclusive (min 1 and max 2 → 1, 1.5, or 2 seconds), then picks one of the chosen colours.
 2. Tap **⚙**. A **2×3** grid of colour pickers (tap a cell to pick; ✕ = no colour). At least two colours. **Min (s)** is at least **0.5**; **Max (s)** is up to **900**. Type a value or use **− / +** (steps of 0.5). Min must be ≤ max.
 3. The line under the fields reads **Change between N colors every min to max seconds** (or **every min seconds** if min equals max). Any error disables **Save**.
 4. **Save** → confirm **Save these settings?**
@@ -140,8 +140,8 @@ A tone (web) or vibration (mobile) on a clock.
 
 1. **+** → Interval chime → Save.
 2. Tap the page once (or **Tap to enable sound**) so the browser allows audio.
-3. **⚙** → **Fixed** every N seconds, or **Random** between lower and upper. Range **1–900** s.
-   - Random 5–10: a chime, then maybe 7 s, then 6 s, then 10 s…
+3. **⚙** → **Fixed** every N seconds, or **Random** **Min** / **Max**. Same rules as Color: **0.5–900** s, steps of **0.5**, min ≤ max. Errors disable **Save**. The line reads **Chime every min to max seconds** (or **every N seconds** if fixed, or if min equals max).
+   - Random min 1 max 2: waits of 1, 1.5, or 2 seconds, new draw each chime.
 4. Save + confirm. The countdown in the widget is seconds until the next hit.
 5. Shrink the widget: it still chimes.
 
@@ -161,7 +161,7 @@ Up to **5** clocks. Types: **timer** (Android-like) and **stopwatch**.
 
 1. Tap the **Timer N** row (opens the set/run screen in the widget — grid or full).
 2. Set **h / m / s**. Digits show remaining time.
-3. **Start** / **Pause** / **Reset** / **+1:00**.
+3. **Start** / **Pause** / **Reset** / **+1:00**. **Reset** sets the countdown to **00:00**. **Start** after that runs from the h/m/s duration.
 4. At 0 it stops and plays a done tone (after sound is enabled).
 5. **←** back to the list. **✕** on a row deletes that clock (confirm).
 
@@ -181,10 +181,10 @@ Field notes: last name, first name, keep-ups, sprint speed, etc.
 
 1. **+** → Stats → Save.
 2. **+ Add stats1** (then stats2 … up to **stats5**).
-3. **Tap the name** (e.g. `stats1`) — it becomes an input. Type a label like `micheal` (**max 10 characters**). Tap/click outside (or Enter) to save. Empty name falls back to `stats1`.
-4. Tap **▦** on the chip (or **⚙** on the widget) to open the **10 key / 10 value** dialog. Save → confirm.
+3. **Tap the name** (e.g. `stats1`) or **▦** — the **10 key / 10 value** sheet opens. Save → confirm.
+4. **Long-press the name** to rename (max 10 characters). Empty name falls back to `stats1`.
 5. Empty keys are dropped on save; the rest come back when you reopen.
-6. Delete a sheet from that dialog if offered. Custom names persist with the sheet.
+6. **✕** on the chip (confirm) removes that sheet. Custom names persist with the sheet.
 
 ---
 

@@ -1,4 +1,6 @@
-import { clampChimeSec, formatChimeEta, nextChimeDelayMs } from "../logic/chime.js";
+import { chimeChangeLabel, chimeSettingsErrors, formatChimeEta, nextChimeDelayMs } from "../logic/chime.js";
+import { formatDelaySec, parseNum } from "../logic/delay.js";
+import { delayField } from "../step-field.js";
 import { openForm } from "../dialog.js";
 import { phEl, setPh } from "../icons.js";
 import { audioBlocked, playChime, unlockAudio } from "../sound.js";
@@ -63,7 +65,7 @@ export function mountChime(body, ctx) {
   function schedule(fromMs) {
     clearTimeout(timer);
     if (paused) return;
-    const ms = fromMs != null ? Math.max(0, fromMs) : Math.max(1000, nextChimeDelayMs(ctx.get()));
+    const ms = fromMs != null ? Math.max(0, fromMs) : Math.max(80, nextChimeDelayMs(ctx.get()));
     dueAt = Date.now() + ms;
     timer = setTimeout(onChime, ms);
   }
@@ -105,7 +107,7 @@ export function mountChime(body, ctx) {
       const cur = ctx.get();
       const values = await openForm({
         title: "Interval chime",
-        build(el) {
+        build(el, ui) {
           const seg = document.createElement("div");
           seg.className = "seg";
           const fixedBtn = document.createElement("button");
@@ -121,47 +123,68 @@ export function mountChime(body, ctx) {
             randBtn.className = mode === "random" ? "is-on" : "";
             fixedWrap.hidden = mode !== "fixed";
             randWrap.hidden = mode !== "random";
+            sync();
           };
           fixedBtn.onclick = () => { mode = "fixed"; paintSeg(); };
           randBtn.onclick = () => { mode = "random"; paintSeg(); };
 
+          const everyL = document.createElement("label");
+          everyL.className = "field";
+          everyL.htmlFor = "ch-fixed";
+          everyL.textContent = "Every (s)";
+          const fi = delayField("ch-fixed", formatDelaySec(cur.fixed));
           const fixedWrap = document.createElement("div");
-          const fl = document.createElement("label");
-          fl.className = "field";
-          fl.textContent = "Every N seconds (1–900)";
-          const fi = document.createElement("input");
-          fi.type = "number";
-          fi.min = "1";
-          fi.max = "900";
-          fi.value = String(cur.fixed);
-          fixedWrap.append(fl, fi);
+          fixedWrap.append(everyL, fi.wrap);
 
+          const minL = document.createElement("label");
+          minL.className = "field";
+          minL.htmlFor = "ch-lo";
+          minL.textContent = "Min (s)";
+          const maxL = document.createElement("label");
+          maxL.className = "field";
+          maxL.htmlFor = "ch-hi";
+          maxL.textContent = "Max (s)";
+          const lo = delayField("ch-lo", formatDelaySec(cur.lo));
+          const hi = delayField("ch-hi", formatDelaySec(cur.hi));
           const randWrap = document.createElement("div");
-          const ll = document.createElement("label");
-          ll.className = "field";
-          ll.textContent = "Random lower (s)";
-          const lo = document.createElement("input");
-          lo.type = "number";
-          lo.min = "1";
-          lo.max = "900";
-          lo.value = String(cur.lo);
-          const hl = document.createElement("label");
-          hl.className = "field";
-          hl.textContent = "Random upper (s)";
-          const hi = document.createElement("input");
-          hi.type = "number";
-          hi.min = "1";
-          hi.max = "900";
-          hi.value = String(cur.hi);
-          randWrap.append(ll, lo, hl, hi);
+          randWrap.append(minL, lo.wrap, maxL, hi.wrap);
 
-          el.append(seg, fixedWrap, randWrap);
+          const notes = document.createElement("div");
+
+          function draft() {
+            return { mode, fixed: fi.value, lo: lo.value, hi: hi.value };
+          }
+
+          function sync() {
+            const errors = chimeSettingsErrors(draft());
+            notes.replaceChildren();
+            if (errors.length) {
+              errors.forEach((msg) => {
+                const p = document.createElement("p");
+                p.className = "hint hint-err";
+                p.textContent = msg;
+                notes.append(p);
+              });
+            } else {
+              const p = document.createElement("p");
+              p.className = "hint";
+              const a = parseNum(fi.value);
+              const b = parseNum(lo.value);
+              const c = parseNum(hi.value);
+              p.textContent = chimeChangeLabel(mode, a, b, c);
+              notes.append(p);
+            }
+            if (ui && ui.setSaveEnabled) ui.setSaveEnabled(!errors.length);
+          }
+
+          fi.oninput = lo.oninput = hi.oninput = sync;
+          el.append(seg, fixedWrap, randWrap, notes);
           paintSeg();
           return () => ({
             mode,
-            fixed: clampChimeSec(fi.value, 30),
-            lo: clampChimeSec(lo.value, 5),
-            hi: clampChimeSec(hi.value, 10)
+            fixed: parseNum(fi.value),
+            lo: parseNum(lo.value),
+            hi: parseNum(hi.value)
           });
         }
       });

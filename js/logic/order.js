@@ -11,25 +11,25 @@ export const WIDGET_META = {
     title: "Color change",
     blurb: "Full-screen colour drills",
     icon: "◐",
-    about: "Reaction drills. Pick two to six colours. The fill flips after a random wait between min and max. Call the colour — or the action it means — before it changes."
+    about: "Reaction drills. Pick two to six colours. Each flip waits a random 0.5s step from min to max (inclusive), then picks a colour. Call it — or the action it means — before it changes."
   },
   chime: {
     title: "Interval chime",
     blurb: "Sound on a fixed or random beat",
     icon: "music-note",
-    about: "A beep on a fixed or random beat for work/rest, keep-ups, or shuttles. Pause when you talk."
+    about: "A beep on a fixed or random beat. Same delay rules as Color: 0.5–900 s, 0.5 steps, min ≤ max. Pause when you talk."
   },
   time: {
     title: "Time",
     blurb: "Timers and stopwatches",
     icon: "⏱",
-    about: "Up to five timers and stopwatches. Tap a name to rename. Double-click the time to open that clock. Stopwatch laps fill a 3×10 grid."
+    about: "Up to five timers and stopwatches. Tap a name to rename. Double-click the time to open that clock. Stopwatch laps: elapsed and split (seconds.microseconds); the table scrolls after 10 rows."
   },
   stats: {
     title: "Stats",
     blurb: "Ten key / value field notes",
     icon: "▦",
-    about: "Field notes: names, keep-ups, splits. Ten key/value pairs per sheet. Tap the name to rename; tap ▦ to open the fields."
+    about: "Field notes: names, keep-ups, splits. Ten key/value pairs per sheet. Tap the name or ▦ to open fields; long-press the name to rename; ✕ to remove."
   }
 };
 

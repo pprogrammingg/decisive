@@ -253,7 +253,7 @@ function SlotEditor({
   );
 }
 
-function StepRow({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+export function StepRow({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
     <View style={styles.step}>
       <Pressable style={styles.stepBtn} onPress={() => onChange(nudgeDelay(value, -DELAY_STEP))}>
