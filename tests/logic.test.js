@@ -1,6 +1,20 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { colorDelayBounds, clampColorCount, paletteForCount, PALETTE } from "../js/logic/color.js";
+import {
+  PALETTE,
+  SLOT_CORAL,
+  SLOT_YELLOW,
+  colorChangeLabel,
+  colorDelayBounds,
+  colorDelayErrors,
+  colorSlotErrors,
+  defaultColor,
+  ensureColor,
+  lockRequiredSlots,
+  nudgeDelay,
+  pickedColors,
+  slotLocked
+} from "../js/logic/color.js";
 import { clampChimeSec, nextChimeDelaySec, ensureChime, formatChimeEta } from "../js/logic/chime.js";
 import {
   addWidgets,
@@ -10,6 +24,9 @@ import {
   swapWidgets,
   togglePending,
   uniqueOrder,
+  APP_INFO,
+  WIDGET_IDS,
+  WIDGET_META,
   MAX_WIDGETS
 } from "../js/logic/order.js";
 import {
@@ -45,47 +62,61 @@ import {
 } from "../js/logic/stats.js";
 import { ensureState, emptyState } from "../js/logic/state.js";
 
-describe("color delay bounds (legacy B())", () => {
-  it("both empty is 1–3 after swap", () => {
-    assert.deepEqual(colorDelayBounds("", ""), { L: 1, U: 3 });
-    assert.deepEqual(colorDelayBounds("  ", "\t"), { L: 1, U: 3 });
+describe("color settings", () => {
+  it("defaults two slots yellow and coral, rest empty", () => {
+    const d = defaultColor();
+    assert.equal(d.slots[0], SLOT_YELLOW);
+    assert.equal(d.slots[1], SLOT_CORAL);
+    assert.equal(pickedColors(d.slots).length, 2);
+    assert.equal(d.delayLo, "0.5");
+    assert.equal(d.delayHi, "3");
   });
-  it("only lower 2 is 2–5", () => {
-    assert.deepEqual(colorDelayBounds("2", ""), { L: 2, U: 5 });
+  it("first two slots cannot be emptied", () => {
+    assert.equal(slotLocked(0), true);
+    assert.equal(slotLocked(1), true);
+    assert.equal(slotLocked(2), false);
+    const locked = lockRequiredSlots(["", "", "#00FF00"]);
+    assert.equal(locked[0], SLOT_YELLOW);
+    assert.equal(locked[1], SLOT_CORAL);
+    assert.equal(locked[2], "#00FF00");
   });
-  it("only upper 2 is 0.5–2", () => {
-    assert.deepEqual(colorDelayBounds("", "2"), { L: 0.5, U: 2 });
+    const e = colorSlotErrors(["#FF0000", "", "", "", "", ""]);
+    assert.equal(e.length, 1);
+    assert.match(e[0], /at least two/i);
+    assert.deepEqual(colorSlotErrors(["#FF0000", "#00FF00"]), []);
   });
-  it("both ordered", () => {
+  it("delay: min 0.5, max 900, min <= max, half steps", () => {
+    assert.ok(colorDelayErrors("", "3").length);
+    assert.ok(colorDelayErrors("0.2", "3").some((m) => /0\.5/.test(m)));
+    assert.ok(colorDelayErrors("1", "901").some((m) => /900/.test(m)));
+    assert.ok(colorDelayErrors("4", "2").some((m) => /less than or equal/i.test(m)));
+    assert.ok(colorDelayErrors("1.2", "3").some((m) => /0\.5/.test(m)));
+    assert.deepEqual(colorDelayErrors("0.5", "900"), []);
+    assert.deepEqual(colorDelayErrors("3", "3"), []);
+  });
+  it("nudge by 0.5 and clamp", () => {
+    assert.equal(nudgeDelay("1", 0.5), "1.5");
+    assert.equal(nudgeDelay("1", -0.5), "0.5");
+    assert.equal(nudgeDelay("0.5", -0.5), "0.5");
+    assert.equal(nudgeDelay("900", 0.5), "900");
+    assert.equal(nudgeDelay("", 0.5), "1");
+  });
+  it("summary label", () => {
+    assert.equal(colorChangeLabel(3, 0.5, 4), "Change between 3 colors every 0.5 to 4 seconds");
+    assert.equal(colorChangeLabel(2, 5, 5), "Change between 2 colors every 5 seconds");
+    assert.equal(colorChangeLabel(2, 12.5, 15), "Change between 2 colors every 12.5 to 15 seconds");
+  });
+  it("valid bounds used as-is; invalid falls back", () => {
     assert.deepEqual(colorDelayBounds("1", "4"), { L: 1, U: 4 });
+    assert.deepEqual(colorDelayBounds("4", "1"), { L: 0.5, U: 3 });
   });
-  it("reversed swapped", () => {
-    assert.deepEqual(colorDelayBounds("4", "1"), { L: 1, U: 4 });
-  });
-  it("clamps", () => {
-    assert.deepEqual(colorDelayBounds("0.1", "2"), { L: 0.5, U: 2 });
-    assert.deepEqual(colorDelayBounds("2", "10"), { L: 2, U: 5 });
-    assert.deepEqual(colorDelayBounds("0.2", "6"), { L: 0.5, U: 5 });
-  });
-  it("invalid treated as empty", () => {
-    assert.deepEqual(colorDelayBounds("x", "3"), { L: 0.5, U: 3 });
-    assert.deepEqual(colorDelayBounds("2", "oops"), { L: 2, U: 5 });
-    assert.deepEqual(colorDelayBounds("x", "y"), { L: 1, U: 3 });
-  });
-});
-
-describe("color palette", () => {
-  it("clamps count 2–6", () => {
-    assert.equal(clampColorCount(1), 2);
-    assert.equal(clampColorCount(9), 6);
-    assert.equal(clampColorCount("3"), 3);
-  });
-  it("uses coral periwinkle magenta first", () => {
-    const p = paletteForCount(3);
-    assert.equal(p[0], PALETTE[0]);
-    assert.match(PALETTE[0], /#FF6F61/i);
-    assert.match(PALETTE[1], /#8B9BFF/i);
-    assert.match(PALETTE[2], /#E11D8F/i);
+  it("migrates old count to slots; keeps yellow+coral default", () => {
+    const m = ensureColor({ count: 3, delayLo: "1", delayHi: "4" });
+    assert.equal(pickedColors(m.slots).length, 3);
+    assert.equal(m.slots[0], PALETTE[0]);
+    const fresh = ensureColor(null);
+    assert.equal(fresh.slots[0], SLOT_YELLOW);
+    assert.equal(fresh.slots[1], SLOT_CORAL);
   });
 });
 
@@ -129,6 +160,13 @@ describe("widget order", () => {
     assert.equal(canAdd(["color"], "color"), false);
     assert.equal(canAdd(["color", "chime", "time", "stats"], "color"), false);
     assert.equal(canAdd(["color"], "chime"), true);
+  });
+  it("app and widget about copy exists", () => {
+    assert.ok(APP_INFO.title);
+    assert.ok(APP_INFO.about.length > 40);
+    for (const id of WIDGET_IDS) {
+      assert.ok(WIDGET_META[id].about.length > 20, id);
+    }
   });
   it("picker pending + commit", () => {
     let p = togglePending(["color"], [], "chime");
@@ -238,7 +276,7 @@ describe("ensureState", () => {
   it("defaults to color widget", () => {
     const s = emptyState();
     assert.deepEqual(s.layout.order, ["color"]);
-    assert.equal(ensureState(null).color.count, 3);
+    assert.equal(pickedColors(ensureState(null).color.slots).length, 2);
     assert.deepEqual(ensureState({ layout: { order: ["chime", "nope"] } }).layout.order, ["chime"]);
   });
 });

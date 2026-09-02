@@ -23,8 +23,8 @@ export function ChimePane({ chime }: { chime: ChimeState }) {
     timerRef.current = setTimeout(() => {
       if (pausedRef.current) return;
       setHit(true);
-      Vibration.vibrate(80);
-      setTimeout(() => setHit(false), 400);
+      Vibration.vibrate(110);
+      setTimeout(() => setHit(false), 500);
       schedule();
     }, ms);
   }, []);

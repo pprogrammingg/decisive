@@ -1,13 +1,17 @@
 import { loadState, saveState } from "./store.js";
 import { ensureState } from "./logic/state.js";
-import { commitPicker, removeWidget } from "./logic/order.js";
-import { openPicker } from "./dialog.js";
+import { APP_INFO, commitPicker, removeWidget } from "./logic/order.js";
+import { openInfo, openPicker } from "./dialog.js";
 import { paintPicker, pickerClick } from "./picker.js";
 import { createBoard } from "./grid.js";
+import { phEl } from "./icons.js";
 import { unlockAudio } from "./sound.js";
 
 const boardEl = document.getElementById("board");
 const addBtn = document.getElementById("add");
+const appInfoBtn = document.getElementById("app-info");
+appInfoBtn.append(phEl("info"));
+appInfoBtn.onclick = () => openInfo({ title: APP_INFO.title, body: APP_INFO.about });
 
 let state = ensureState(null);
 let saveTimer = 0;

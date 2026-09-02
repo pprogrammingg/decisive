@@ -1,8 +1,17 @@
 import {
-  clampColorCount,
-  colorDelayBounds,
+  DELAY_STEP,
+  SLOT_YELLOW,
+  activePalette,
+  colorChangeLabel,
+  colorSettingsErrors,
+  isLightHex,
+  lockRequiredSlots,
   nextColorDelayMs,
-  paletteForCount
+  nudgeDelay,
+  padSlots,
+  parseNum,
+  pickedColors,
+  slotLocked
 } from "../logic/color.js";
 import { openForm } from "../dialog.js";
 
@@ -13,7 +22,7 @@ export function mountColor(body, ctx) {
   let timer = 0;
 
   function paint() {
-    const colors = paletteForCount(ctx.get().count);
+    const colors = activePalette(ctx.get());
     const hex = colors[(Math.random() * colors.length) | 0];
     fill.style.background = hex;
     fill.dataset.hex = hex;
@@ -33,58 +42,90 @@ export function mountColor(body, ctx) {
       const cur = ctx.get();
       const values = await openForm({
         title: "Color change",
-        build(el) {
-          const label = document.createElement("label");
-          label.className = "field";
-          label.htmlFor = "c-n";
-          const nv = document.createElement("span");
-          nv.textContent = String(clampColorCount(cur.count));
-          label.append("Colors (", nv, ") 2–6");
-          const range = document.createElement("input");
-          range.id = "c-n";
-          range.type = "range";
-          range.min = "2";
-          range.max = "6";
-          range.value = String(clampColorCount(cur.count));
-          range.oninput = () => { nv.textContent = String(clampColorCount(range.value)); };
-          const ends = document.createElement("div");
-          ends.className = "range-ends";
-          ends.innerHTML = "<span>2</span><span>6</span>";
-          const loL = document.createElement("label");
-          loL.className = "field";
-          loL.htmlFor = "c-lo";
-          loL.textContent = "Delay lower (s)";
-          const lo = document.createElement("input");
-          lo.id = "c-lo";
-          lo.type = "number";
-          lo.min = "0.5";
-          lo.max = "5";
-          lo.step = "any";
-          lo.inputMode = "decimal";
-          lo.value = cur.delayLo;
-          const hiL = document.createElement("label");
-          hiL.className = "field";
-          hiL.htmlFor = "c-hi";
-          hiL.textContent = "Delay upper (s)";
-          const hi = document.createElement("input");
-          hi.id = "c-hi";
-          hi.type = "number";
-          hi.min = "0.5";
-          hi.max = "5";
-          hi.step = "any";
-          hi.inputMode = "decimal";
-          hi.value = cur.delayHi;
-          const hint = document.createElement("p");
-          hint.className = "hint";
-          const sync = () => {
-            const z = colorDelayBounds(lo.value, hi.value);
-            hint.textContent = "Final delay: " + z.L + "–" + z.U + " s";
-          };
+        build(root, ui) {
+          const slots = lockRequiredSlots(cur.slots);
+          const grid = document.createElement("div");
+          grid.className = "swatch-grid";
+          const minL = document.createElement("label");
+          minL.className = "field";
+          minL.htmlFor = "c-lo";
+          minL.textContent = "Min (s)";
+          const maxL = document.createElement("label");
+          maxL.className = "field";
+          maxL.htmlFor = "c-hi";
+          maxL.textContent = "Max (s)";
+          const lo = delayField("c-lo", cur.delayLo);
+          const hi = delayField("c-hi", cur.delayHi);
+          const notes = document.createElement("div");
+
+          function sync() {
+            const draft = { slots: slots.slice(), delayLo: lo.value, delayHi: hi.value };
+            const errors = colorSettingsErrors(draft);
+            notes.replaceChildren();
+            if (errors.length) {
+              errors.forEach((msg) => {
+                const p = document.createElement("p");
+                p.className = "hint hint-err";
+                p.textContent = msg;
+                notes.append(p);
+              });
+            } else {
+              const p = document.createElement("p");
+              p.className = "hint";
+              const a = parseNum(lo.value);
+              const b = parseNum(hi.value);
+              p.textContent = colorChangeLabel(pickedColors(slots).length, a, b);
+              notes.append(p);
+            }
+            if (ui && ui.setSaveEnabled) ui.setSaveEnabled(!errors.length);
+          }
+
+          function paintGrid() {
+            grid.replaceChildren();
+            slots.forEach((hex, i) => {
+              const cell = document.createElement("div");
+              cell.className = "swatch-cell" + (hex ? " is-on" : "") + (hex && isLightHex(hex) ? " is-light" : "");
+              if (hex) cell.style.background = hex;
+              const picker = document.createElement("input");
+              picker.type = "color";
+              picker.value = (hex || SLOT_YELLOW).toLowerCase();
+              picker.setAttribute("aria-label", hex ? "Colour " + (i + 1) : "Pick colour " + (i + 1));
+              picker.oninput = () => {
+                slots[i] = picker.value.toUpperCase();
+                paintGrid();
+                sync();
+              };
+              cell.append(picker);
+              if (!hex) {
+                const none = document.createElement("span");
+                none.className = "swatch-none";
+                none.textContent = "None";
+                cell.append(none);
+              } else if (!slotLocked(i)) {
+                const clear = document.createElement("button");
+                clear.type = "button";
+                clear.className = "swatch-clear";
+                clear.setAttribute("aria-label", "No colour");
+                clear.textContent = "✕";
+                clear.onclick = (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  slots[i] = "";
+                  paintGrid();
+                  sync();
+                };
+                cell.append(clear);
+              }
+              grid.append(cell);
+            });
+          }
+
           lo.oninput = hi.oninput = sync;
+          paintGrid();
           sync();
-          el.append(label, range, ends, loL, lo, hiL, hi, hint);
+          root.append(grid, minL, lo.wrap, maxL, hi.wrap, notes);
           return () => ({
-            count: clampColorCount(range.value),
+            slots: lockRequiredSlots(slots),
             delayLo: lo.value,
             delayHi: hi.value
           });
@@ -96,4 +137,37 @@ export function mountColor(body, ctx) {
       }
     }
   };
+}
+
+function delayField(id, value) {
+  const wrap = document.createElement("div");
+  wrap.className = "step-row";
+  const down = document.createElement("button");
+  down.type = "button";
+  down.className = "step-btn";
+  down.setAttribute("aria-label", "Decrease");
+  down.textContent = "−";
+  const inp = document.createElement("input");
+  inp.id = id;
+  inp.type = "number";
+  inp.min = "0.5";
+  inp.max = "900";
+  inp.step = "0.5";
+  inp.inputMode = "decimal";
+  inp.value = value;
+  const up = document.createElement("button");
+  up.type = "button";
+  up.className = "step-btn";
+  up.setAttribute("aria-label", "Increase");
+  up.textContent = "+";
+  down.onclick = () => {
+    inp.value = nudgeDelay(inp.value, -DELAY_STEP);
+    inp.dispatchEvent(new Event("input"));
+  };
+  up.onclick = () => {
+    inp.value = nudgeDelay(inp.value, DELAY_STEP);
+    inp.dispatchEvent(new Event("input"));
+  };
+  wrap.append(down, inp, up);
+  return Object.assign(inp, { wrap });
 }

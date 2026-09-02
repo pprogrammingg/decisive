@@ -21,17 +21,22 @@ export async function unlockAudio() {
 export function playChime() {
   if (!ctx || ctx.state !== "running") return false;
   const t = ctx.currentTime;
-  const o = ctx.createOscillator();
-  const g = ctx.createGain();
-  o.type = "sine";
-  o.frequency.setValueAtTime(880, t);
-  o.frequency.exponentialRampToValueAtTime(1320, t + 0.08);
-  g.gain.setValueAtTime(0.0001, t);
-  g.gain.exponentialRampToValueAtTime(0.18, t + 0.02);
-  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.38);
-  o.connect(g).connect(ctx.destination);
-  o.start(t);
-  o.stop(t + 0.4);
+  const dur = 0.5;
+  function ping(type, freq0, freq1, peak) {
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(freq0, t);
+    o.frequency.exponentialRampToValueAtTime(freq1, t + 0.09);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak, t + 0.016);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(ctx.destination);
+    o.start(t);
+    o.stop(t + dur + 0.02);
+  }
+  ping("sine", 880, 1320, 0.34);
+  ping("triangle", 1320, 1760, 0.16);
   return true;
 }
 

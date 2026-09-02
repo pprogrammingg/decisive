@@ -101,14 +101,14 @@
   box-shadow: none;
 }
 
-body.has-full .fab-add { visibility: hidden; }
+body.has-full .fab-cluster { visibility: hidden; }
 
 .widget-bar {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   flex-shrink: 0;
-  padding: 6px 8px;
+  padding: 4px 6px 4px 4px;
   background: var(--glass);
   backdrop-filter: blur(10px);
   z-index: 2;
@@ -125,6 +125,15 @@ body.has-full .fab-add { visibility: hidden; }
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  line-height: 36px;
+}
+
+.widget-bar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 .icon-btn {
@@ -139,6 +148,15 @@ body.has-full .fab-add { visibility: hidden; }
   font-size: 16px;
   line-height: 1;
   padding: 0;
+}
+
+.icon-btn .ph-icon {
+  font-size: 18px;
+}
+
+.widget-bar .icon-btn.gear {
+  font-size: 26px;
+  line-height: 1;
 }
 
 .icon-btn.drag {
@@ -160,21 +178,41 @@ body.has-full .fab-add { visibility: hidden; }
   position: relative;
 }
 
-.fab-add {
+.fab-cluster {
   position: fixed;
   left: max(16px, env(safe-area-inset-left, 0px));
   bottom: max(16px, env(safe-area-inset-bottom, 0px));
   z-index: 30;
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.fab-add {
   width: 58px;
   height: 58px;
   border: 0;
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 25%, #ffb3aa, var(--coral));
-  color: #1a0a08;
+  background: radial-gradient(circle at 30% 25%, #c5caff, var(--periwinkle));
+  color: #121428;
   font-size: 32px;
   font-weight: 600;
-  box-shadow: 0 8px 28px rgba(255, 111, 97, 0.45), 0 0 0 6px rgba(255, 111, 97, 0.18);
+  box-shadow: 0 8px 28px rgba(139, 155, 255, 0.45), 0 0 0 6px rgba(139, 155, 255, 0.18);
   animation: fab-in 420ms ease both;
+}
+
+.fab-info {
+  width: 44px;
+  height: 44px;
+  margin-bottom: 7px;
+  border: 1px solid var(--line);
+  background: var(--glass);
+  animation: fab-in 420ms ease both;
+  animation-delay: 70ms;
+}
+
+.fab-info .ph-icon {
+  font-size: 22px;
 }
 
 @keyframes fab-in {

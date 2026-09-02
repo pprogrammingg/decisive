@@ -8,12 +8,14 @@ function el(tag, cls, text) {
 function mountOverlay(node, onDismiss) {
   const overlay = el("div", "dlg-overlay");
   overlay.append(node);
-  overlay.addEventListener("click", (e) => {
-    if (e.target === overlay) {
-      overlay.remove();
-      if (onDismiss) onDismiss();
-    }
-  });
+  if (onDismiss) {
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) {
+        overlay.remove();
+        onDismiss();
+      }
+    });
+  }
   document.getElementById("dialogs").append(overlay);
   return overlay;
 }
@@ -49,7 +51,6 @@ export function openForm({ title, build, saveText = "Save" }) {
     box.append(el("h2", "", title || "Settings"));
     const body = el("div");
     box.append(body);
-    const collect = build(body);
     const row = el("div", "dlg-actions");
     const cancel = el("button", "btn", "Cancel");
     const save = el("button", "btn btn-primary", saveText);
@@ -62,9 +63,15 @@ export function openForm({ title, build, saveText = "Save" }) {
       overlay.remove();
       resolve(v);
     };
-    const overlay = mountOverlay(box, () => finish(null));
+    const overlay = mountOverlay(box);
+    const collect = build(body, {
+      setSaveEnabled(on) {
+        save.disabled = !on;
+      }
+    });
     cancel.onclick = () => finish(null);
     save.onclick = async () => {
+      if (save.disabled) return;
       const values = collect();
       const ok = await openConfirm({
         title: "Save settings",
@@ -124,7 +131,7 @@ export function openPicker({ order, paint, onToggle }) {
       overlay.remove();
       resolve(v);
     };
-    const overlay = mountOverlay(box, () => finish(null));
+    const overlay = mountOverlay(box);
     const redraw = () => paint(list, order, pending);
     list.addEventListener("click", (e) => {
       const btn = e.target.closest("[data-id]");
@@ -135,6 +142,54 @@ export function openPicker({ order, paint, onToggle }) {
     redraw();
     cancel.onclick = () => finish(null);
     save.onclick = () => finish(pending.slice());
+  });
+}
+
+export function openInfo({ title, body }) {
+  return new Promise((resolve) => {
+    const overlay = el("div", "info-overlay");
+    const box = el("div", "info-pop");
+    box.setAttribute("role", "dialog");
+    const head = el("div", "info-pop-head");
+    head.append(el("h2", "", title || "Info"));
+    const close = el("button", "icon-btn");
+    close.type = "button";
+    close.setAttribute("aria-label", "Close");
+    close.textContent = "✕";
+    head.append(close);
+    box.append(head, el("p", "info-pop-body", body || ""));
+    overlay.append(box);
+    document.getElementById("dialogs").append(overlay);
+    let settled = false;
+    let gone = false;
+    const done = () => {
+      if (gone) return;
+      gone = true;
+      overlay.remove();
+      resolve();
+    };
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      document.removeEventListener("keydown", onKey);
+      const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (reduce) {
+        done();
+        return;
+      }
+      overlay.classList.add("is-out");
+      box.classList.add("is-out");
+      overlay.addEventListener("animationend", done, { once: true });
+      setTimeout(done, 280);
+    };
+    const onKey = (e) => {
+      if (e.key === "Escape") finish();
+    };
+    document.addEventListener("keydown", onKey);
+    close.onclick = finish;
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) finish();
+    });
   });
 }
 

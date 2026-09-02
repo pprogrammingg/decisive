@@ -12,8 +12,6 @@ import {
 import { SafeAreaView } from "react-native";
 import {
   clampChimeSec,
-  clampColorCount,
-  colorDelayBounds,
   commitPicker,
   MAX_WIDGETS,
   removeWidget,
@@ -21,12 +19,13 @@ import {
   togglePending,
   WIDGET_IDS,
   WIDGET_META,
+  APP_INFO,
   type WidgetId,
 } from "../logic";
 import { IconHit, PhIcon } from "../icons";
 import { useAppState } from "../state/AppStateContext";
 import { colors } from "../theme";
-import { ColorPane } from "./ColorPane";
+import { ColorPane, ColorSettings } from "./ColorPane";
 import { ChimePane } from "./ChimePane";
 import { StatsPane } from "./StatsPane";
 import { TimePane } from "./TimePane";
@@ -40,6 +39,7 @@ export function HomeScreen() {
   const [dragging, setDragging] = useState<WidgetId | null>(null);
   const [colorSet, setColorSet] = useState(false);
   const [chimeSet, setChimeSet] = useState(false);
+  const [info, setInfo] = useState<{ title: string; body: string } | null>(null);
   const order = state.layout.order;
   const n = order.length;
   const cellW = n <= 2 ? width : width / 2;
@@ -113,13 +113,20 @@ export function HomeScreen() {
                 }}
               >
                 <View style={styles.bar}>
-                  <Text style={styles.title}>{WIDGET_META[id].title}</Text>
+                  <Text style={styles.title} numberOfLines={1}>{WIDGET_META[id].title}</Text>
+                  <View style={styles.barActions}>
+                  <IconHit
+                    label={"About " + WIDGET_META[id].title}
+                    onPress={() => setInfo({ title: WIDGET_META[id].title, body: WIDGET_META[id].about })}
+                  >
+                    <PhIcon name="info" size={18} color={colors.cream} />
+                  </IconHit>
                   {id === "color" || id === "chime" ? (
                     <IconHit
                       label="Settings"
                       onPress={() => (id === "color" ? setColorSet(true) : setChimeSet(true))}
                     >
-                      <Text style={styles.icon}>⚙</Text>
+                      <Text style={styles.gear}>⚙</Text>
                     </IconHit>
                   ) : null}
                   {solo ? null : (
@@ -147,6 +154,7 @@ export function HomeScreen() {
                       <Text style={styles.icon}>✕</Text>
                     </IconHit>
                   ) : null}
+                  </View>
                 </View>
                 <View style={styles.body}>{body(id, expanded)}</View>
                 {dragging === id ? <Text style={styles.hint}>Tap another widget to swap</Text> : null}
@@ -156,15 +164,24 @@ export function HomeScreen() {
         )}
       </View>
       {full ? null : (
-        <Pressable
-          style={({ pressed }) => [styles.fab, pressed && styles.fabOn]}
-          onPress={() => {
-            setPending([]);
-            setPick(true);
-          }}
-        >
-          <Text style={styles.fabT}>+</Text>
-        </Pressable>
+        <View style={styles.fabRow} pointerEvents="box-none">
+          <Pressable
+            style={({ pressed }) => [styles.fab, pressed && styles.fabOn]}
+            onPress={() => {
+              setPending([]);
+              setPick(true);
+            }}
+          >
+            <Text style={styles.fabT}>+</Text>
+          </Pressable>
+          <Pressable
+            accessibilityLabel="About Decisive"
+            style={({ pressed }) => [styles.fabInfo, pressed && styles.fabInfoOn]}
+            onPress={() => setInfo({ title: APP_INFO.title, body: APP_INFO.about })}
+          >
+            <PhIcon name="info" size={22} color={colors.cream} />
+          </Pressable>
+        </View>
       )}
 
       <Modal visible={pick} transparent animationType="fade" onRequestClose={() => setPick(false)}>
@@ -224,59 +241,31 @@ export function HomeScreen() {
 
       <ColorSettings visible={colorSet} onClose={() => setColorSet(false)} />
       <ChimeSettings visible={chimeSet} onClose={() => setChimeSet(false)} />
+      <InfoPop info={info} onClose={() => setInfo(null)} />
     </SafeAreaView>
   );
 }
 
-function ColorSettings({ visible, onClose }: { visible: boolean; onClose: () => void }) {
-  const { state, update } = useAppState();
-  const [count, setCount] = useState(String(state.color.count));
-  const [lo, setLo] = useState(state.color.delayLo);
-  const [hi, setHi] = useState(state.color.delayHi);
-  useEffect(() => {
-    if (!visible) return;
-    setCount(String(state.color.count));
-    setLo(state.color.delayLo);
-    setHi(state.color.delayHi);
-  }, [visible, state.color.count, state.color.delayLo, state.color.delayHi]);
-  const z = colorDelayBounds(lo, hi);
+function InfoPop({
+  info,
+  onClose,
+}: {
+  info: { title: string; body: string } | null;
+  onClose: () => void;
+}) {
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <View style={styles.dlg}>
-          <Text style={styles.h}>Color change</Text>
-          <Text style={styles.muted}>Colors ({clampColorCount(count)}) 2–6</Text>
-          <TextInput style={styles.inp} keyboardType="number-pad" value={count} onChangeText={setCount} />
-          <Text style={styles.muted}>Delay lower (s)</Text>
-          <TextInput style={styles.inp} keyboardType="decimal-pad" value={lo} onChangeText={setLo} />
-          <Text style={styles.muted}>Delay upper (s)</Text>
-          <TextInput style={styles.inp} keyboardType="decimal-pad" value={hi} onChangeText={setHi} />
-          <Text style={styles.hint}>Final delay: {z.L}–{z.U} s</Text>
-          <View style={styles.actions}>
-            <Pressable onPress={onClose}><Text style={styles.muted}>Cancel</Text></Pressable>
-            <Pressable
-              onPress={() =>
-                Alert.alert("Save settings", "Save these settings?", [
-                  { text: "Cancel", style: "cancel" },
-                  {
-                    text: "Save",
-                    onPress: () => {
-                      update((s) => {
-                        s.color.count = clampColorCount(count);
-                        s.color.delayLo = lo;
-                        s.color.delayHi = hi;
-                      });
-                      onClose();
-                    },
-                  },
-                ])
-              }
-            >
-              <Text style={styles.save}>Save</Text>
-            </Pressable>
+    <Modal visible={!!info} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={styles.infoOverlay} onPress={onClose}>
+        <Pressable style={styles.infoPop} onPress={() => {}}>
+          <View style={styles.infoHead}>
+            <Text style={styles.infoTitle}>{info?.title}</Text>
+            <IconHit label="Close" onPress={onClose}>
+              <Text style={styles.icon}>✕</Text>
+            </IconHit>
           </View>
-        </View>
-      </View>
+          <Text style={styles.infoBody}>{info?.body}</Text>
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 }
@@ -354,26 +343,50 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.ink },
   grid: { flex: 1, flexDirection: "row", flexWrap: "wrap", padding: 4, alignContent: "flex-start" },
   card: { margin: 4, borderRadius: 18, overflow: "hidden", backgroundColor: colors.ink2, borderWidth: 1, borderColor: "#ffffff18" },
-  bar: { flexDirection: "row", alignItems: "center", paddingHorizontal: 8, paddingVertical: 6, backgroundColor: "#0006", gap: 8, zIndex: 2 },
-  title: { flex: 1, color: colors.cream, fontWeight: "800", letterSpacing: 1, fontSize: 11, textTransform: "uppercase" },
-  icon: { color: colors.cream, fontSize: 16 },
+  bar: { flexDirection: "row", alignItems: "center", paddingLeft: 8, paddingRight: 4, paddingVertical: 4, backgroundColor: "#0006", gap: 8, zIndex: 2 },
+  barActions: { flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 4, flexShrink: 0 },
+  title: { flex: 1, color: colors.cream, fontWeight: "800", letterSpacing: 1, fontSize: 11, textTransform: "uppercase", lineHeight: 36 },
+  icon: { color: colors.cream, fontSize: 16, lineHeight: 16, includeFontPadding: false },
+  gear: { color: colors.cream, fontSize: 26, lineHeight: 36, includeFontPadding: false, textAlign: "center" },
   body: { flex: 1 },
   fab: {
-    position: "absolute",
-    left: 16,
-    bottom: 24,
     width: 58,
     height: 58,
     borderRadius: 29,
-    backgroundColor: colors.coral,
+    backgroundColor: colors.periwinkle,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: colors.coral,
+    shadowColor: colors.periwinkle,
     shadowOpacity: 0.5,
     shadowRadius: 12,
   },
+  fabRow: {
+    position: "absolute",
+    left: 16,
+    bottom: 24,
+    flexDirection: "row",
+    alignItems: "flex-end",
+    gap: 10,
+  },
   fabOn: { transform: [{ scale: 0.97 }], opacity: 0.92 },
-  fabT: { fontSize: 32, color: "#1a0a08", fontWeight: "700" },
+  fabT: { fontSize: 32, color: "#121428", fontWeight: "700" },
+  fabInfo: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    marginBottom: 7,
+    backgroundColor: "#0006",
+    borderWidth: 1,
+    borderColor: "#ffffff18",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  fabInfoOn: { backgroundColor: colors.pressActive, transform: [{ scale: 0.92 }] },
+  infoOverlay: { flex: 1, backgroundColor: "#0008", justifyContent: "center", padding: 24 },
+  infoPop: { backgroundColor: colors.ink2, borderRadius: 18, padding: 16, gap: 10, borderWidth: 1, borderColor: "#ffffff18" },
+  infoHead: { flexDirection: "row", alignItems: "center", gap: 8 },
+  infoTitle: { flex: 1, color: colors.cream, fontSize: 15, fontWeight: "800", letterSpacing: 1, textTransform: "uppercase" },
+  infoBody: { color: colors.muted, fontSize: 15, lineHeight: 22 },
   overlay: { flex: 1, backgroundColor: "#0008", justifyContent: "center", padding: 20 },
   dlg: { backgroundColor: colors.ink2, borderRadius: 20, padding: 16, gap: 8 },
   h: { color: colors.cream, fontSize: 18, fontWeight: "700" },

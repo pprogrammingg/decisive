@@ -83,6 +83,10 @@ button {
     filter: brightness(1.08);
   }
 
+  .fab-info:hover {
+    background: var(--press-hover);
+  }
+
   .row-btn:hover,
   .add-row:hover,
   .picker-row:hover:not(:disabled),

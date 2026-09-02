@@ -4,9 +4,32 @@
 ![tests](badges/tests.svg)
 ![security](badges/security.svg)
 
-Athletic decision-making drills. Up to **four widgets** on one board. They run at the same time. State is one JSON object.
+A drill board for **athletes and coaches**: call the colour, hit the interval, run the clock, jot the stat — without putting the session down.
 
-Web is vanilla HTML / CSS / JS (no build). Mobile is Expo (`apps/mobile`).
+Training is full of split-second choices (pass or hold, left or right, go or wait). Phone clocks and clipboards pull you out of that. Decisive keeps up to **four live tools on one screen**, all running at once, so a coach can run a reaction drill while an athlete still sees time, cadence, and notes.
+
+| Widget | When you need it |
+|---|---|
+| **Color change** | Reaction and decision drills. The fill flips on a delay; you name the colour (or the action it means) before it changes. |
+| **Interval chime** | Beep on a fixed or random beat — work/rest, keep-ups, shuttle touches — pause when you talk. |
+| **Time** | Up to five timers and stopwatches (laps on a 3×10 grid). Rename clocks (max 15 characters); double-click the time to open that clock. |
+| **Stats** | Ten key/value fields per sheet — last name, first name, keep-ups, split. Rename the sheet (max 10 characters). |
+
+Add what the session needs, expand one tool to full screen, shrink it and it **keeps running**. Layout and numbers persist on refresh (and in the Expo app).
+
+Roadmap: [`roadmap.md`](roadmap.md) (epics + checkboxes) · [`roadmap.json`](roadmap.json) (machine-readable).
+
+## Commits
+
+Every commit message must start with **`<EPIC_CODE>-<TASK> : <description>`** (e.g. `UX001-1 : Add board and widget info popouts`). Epic codes and task numbers are in [`roadmap.json`](roadmap.json) / [`roadmap.md`](roadmap.md).
+
+Enable the enforced hook once:
+
+```bash
+./scripts/setup-git-hooks.sh
+```
+
+Merge commits are exempt. Bypass hook only when necessary: `git commit --no-verify`.
 
 ---
 
@@ -64,6 +87,7 @@ Default board: **Color change** already added.
 | Control | Where | What |
 |---|---|---|
 | **+** | Bottom left | Opens the add picker. |
+| **ⓘ** | Beside **+**, and on each widget bar | Short popout: what the board / that widget is for. |
 | **⋮⋮** | Widget bar | Drag onto another widget to **swap** places. Hidden in full screen. |
 | **⚙** | Widget bar | Settings (Color, Chime, Time, Stats). Works in **grid and full** size. |
 | **↗ / ↙** | Widget bar | Expand covers the whole screen / contract back to the grid. Hidden when only **one** widget is on the board (it already fills the screen). |
@@ -82,7 +106,7 @@ Default board: **Color change** already added.
 
 - 1 widget → one cell. 2 → two cells (stacked on a narrow phone). 3 → two on top, one spanning. 4 → 2×2.
 - Shrunk widgets keep running (colour, chime, clocks).
-- Full screen: widget covers the whole viewport, **+** is hidden. Contract (↙) returns it to its grid cell.
+- Full screen: widget covers the whole viewport, **+** and board info are hidden. Contract (↙) returns it to its grid cell.
 
 **Persist**
 
@@ -98,12 +122,13 @@ Reload the page/app: layout and settings come back.
 
 ### 1. Color change ◐
 
-Full-cell colour drills (coral, periwinkle, magenta, then cream / ink / teal).
+Full-cell colour drills. Defaults: a cool yellow and coral orange; other slots empty.
 
-1. It is on the board by default. The fill changes on a random delay.
-2. Tap **⚙**. Slider: how many colours **2–6**. Lower / upper delay in seconds (**0.5–5**). Empty bounds use the original default range (about 1–3 s).
-3. **Save** → confirm **Save these settings?**
-4. Cycle continues in the small cell and in full screen.
+1. It is on the board by default. The fill flips after a random wait between **min** and **max**.
+2. Tap **⚙**. A **2×3** grid of colour pickers (tap a cell to pick; ✕ = no colour). At least two colours. **Min (s)** is at least **0.5**; **Max (s)** is up to **900**. Type a value or use **− / +** (steps of 0.5). Min must be ≤ max.
+3. The line under the fields reads **Change between N colors every min to max seconds** (or **every min seconds** if min equals max). Any error disables **Save**.
+4. **Save** → confirm **Save these settings?**
+5. Cycle continues in the small cell and in full screen.
 
 **Drill idea:** call the colour you see (or the next action it means) before it flips.
 
@@ -171,7 +196,7 @@ Add Color, Chime, Time (running), and Stats. Colour still flips, chime still hit
 
 ## Layout (code)
 
-See `roadmap.md` for phases (including security scan and Play / App Store). UAT steps: `user_acceptance_testing.md`.
+See `roadmap.md` / `roadmap.json` for epics (including security scan and Play / App Store). UAT steps: `user_acceptance_testing.md`.
 
 ```
 index.html

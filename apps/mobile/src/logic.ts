@@ -10,14 +10,40 @@ export const PALETTE = [
 export const WIDGET_IDS = ["color", "chime", "time", "stats"] as const;
 export type WidgetId = (typeof WIDGET_IDS)[number];
 
+export const APP_INFO = {
+  title: "Decisive",
+  about:
+    "A drill board for athletes and coaches. Keep reaction, interval, clock, and notes on one screen — up to four tools, all live — so the session does not stop for a phone clock or clipboard.",
+};
+
 export const WIDGET_META: Record<
   WidgetId,
-  { title: string; blurb: string; icon: string }
+  { title: string; blurb: string; icon: string; about: string }
 > = {
-  color: { title: "Color change", blurb: "Full-screen colour drills", icon: "◐" },
-  chime: { title: "Interval chime", blurb: "Sound on a fixed or random beat", icon: "music-note" },
-  time: { title: "Time", blurb: "Timers and stopwatches", icon: "⏱" },
-  stats: { title: "Stats", blurb: "Ten key / value field notes", icon: "▦" },
+  color: {
+    title: "Color change",
+    blurb: "Full-screen colour drills",
+    icon: "◐",
+    about: "Reaction drills. Pick two to six colours. The fill flips after a random wait between min and max. Call the colour — or the action it means — before it changes.",
+  },
+  chime: {
+    title: "Interval chime",
+    blurb: "Sound on a fixed or random beat",
+    icon: "music-note",
+    about: "A beep on a fixed or random beat for work/rest, keep-ups, or shuttles. Pause when you talk.",
+  },
+  time: {
+    title: "Time",
+    blurb: "Timers and stopwatches",
+    icon: "⏱",
+    about: "Up to five timers and stopwatches. Tap a name to rename. Double-tap the time to open that clock. Stopwatch laps fill a 3×10 grid.",
+  },
+  stats: {
+    title: "Stats",
+    blurb: "Ten key / value field notes",
+    icon: "▦",
+    about: "Field notes: names, keep-ups, splits. Ten key/value pairs per sheet. Tap the name to rename; tap ▦ to open the fields.",
+  },
 };
 
 export const MAX_WIDGETS = 4;
@@ -32,7 +58,7 @@ export const STATS_NAME_MAX = 10;
 export const CHIME_MIN = 1;
 export const CHIME_MAX = 900;
 
-export type ColorState = { count: number; delayLo: string; delayHi: string };
+export type ColorState = { slots: string[]; delayLo: string; delayHi: string };
 export type ChimeState = { mode: "fixed" | "random"; fixed: number; lo: number; hi: number };
 export type TimeItem = {
   id: string;
@@ -54,10 +80,21 @@ export type AppState = {
   stats: { items: StatsItem[] };
 };
 
-export function clampColorCount(n: unknown): number {
-  const x = Number(n);
-  if (!Number.isFinite(x)) return 2;
-  return Math.min(6, Math.max(2, x | 0));
+export const COLOR_SLOTS = 6;
+export const COLOR_MIN_PICKED = 2;
+export const COLOR_LOCKED = 2;
+export const DELAY_MIN = 0.5;
+export const DELAY_MAX = 900;
+export const DELAY_STEP = 0.5;
+export const SLOT_YELLOW = "#F5D547";
+export const SLOT_CORAL = "#FF6F61";
+
+export function defaultColor(): ColorState {
+  return {
+    slots: [SLOT_YELLOW, SLOT_CORAL, "", "", "", ""],
+    delayLo: "0.5",
+    delayHi: "3",
+  };
 }
 
 export function parseNum(s: unknown): number | null {
@@ -68,26 +105,101 @@ export function parseNum(s: unknown): number | null {
   return Number.isFinite(x) ? x : null;
 }
 
-export function colorDelayBounds(loStr: unknown, hiStr: unknown): { L: number; U: number } {
-  const pl = parseNum(loStr);
-  const ph = parseNum(hiStr);
-  let x: number;
-  let y: number;
-  if (pl === null && ph === null) {
-    x = 3;
-    y = 1;
-  } else if (pl === null && ph !== null) {
-    x = 0.5;
-    y = Math.min(5, Math.max(0.5, ph));
-  } else if (pl !== null && ph === null) {
-    x = Math.min(5, Math.max(0.5, pl));
-    y = 5;
+export function normalizeHex(raw: unknown): string {
+  if (raw == null) return "";
+  const t = String(raw).trim();
+  if (!t) return "";
+  const m = t.match(/^#?([0-9a-fA-F]{6})$/);
+  if (!m) return "";
+  return "#" + m[1].toUpperCase();
+}
+
+export function padSlots(list: unknown): string[] {
+  const out = (Array.isArray(list) ? list : []).slice(0, COLOR_SLOTS).map(normalizeHex);
+  while (out.length < COLOR_SLOTS) out.push("");
+  return out;
+}
+
+export function pickedColors(slots: unknown): string[] {
+  return padSlots(slots).filter(Boolean);
+}
+
+export function slotLocked(index: number): boolean {
+  return (index | 0) < COLOR_LOCKED;
+}
+
+export function lockRequiredSlots(slots: unknown): string[] {
+  const out = padSlots(slots);
+  if (!out[0]) out[0] = SLOT_YELLOW;
+  if (!out[1]) out[1] = SLOT_CORAL;
+  return out;
+}
+
+export function formatDelaySec(n: number): string {
+  const x = Math.round(Number(n) * 2) / 2;
+  if (!Number.isFinite(x)) return "";
+  return Number.isInteger(x) ? String(x) : x.toFixed(1);
+}
+
+export function isHalfStep(n: number): boolean {
+  if (!Number.isFinite(n)) return false;
+  return Math.abs(n * 2 - Math.round(n * 2)) < 1e-6;
+}
+
+export function nudgeDelay(str: unknown, delta: number): string {
+  const n = parseNum(str);
+  const base = n === null ? DELAY_MIN : n;
+  const stepped = Math.round((base + delta) / DELAY_STEP) * DELAY_STEP;
+  const x = Math.min(DELAY_MAX, Math.max(DELAY_MIN, stepped));
+  return formatDelaySec(x);
+}
+
+export function colorSlotErrors(slots: unknown): string[] {
+  const n = pickedColors(slots).length;
+  if (n >= COLOR_MIN_PICKED) return [];
+  return [
+    "Pick at least two colours. Empty cells are skipped — tap a cell to choose a colour, or ✕ to clear one.",
+  ];
+}
+
+export function colorDelayErrors(loStr: unknown, hiStr: unknown): string[] {
+  const errors: string[] = [];
+  const lo = parseNum(loStr);
+  const hi = parseNum(hiStr);
+  if (lo === null) {
+    errors.push("Enter a min time, or use the arrows. Min must be at least 0.5 seconds.");
   } else {
-    x = Math.min(5, Math.max(0.5, pl as number));
-    y = Math.min(5, Math.max(0.5, ph as number));
+    if (lo < DELAY_MIN) errors.push("Min must be at least 0.5 seconds.");
+    else if (lo > DELAY_MAX) errors.push("Min cannot be more than 900 seconds.");
+    else if (!isHalfStep(lo)) errors.push("Min must be in steps of 0.5 seconds (for example 1 or 1.5).");
   }
-  if (x > y) [x, y] = [y, x];
-  return { L: x, U: y };
+  if (hi === null) {
+    errors.push("Enter a max time, or use the arrows. Max can be up to 900 seconds.");
+  } else {
+    if (hi < DELAY_MIN) errors.push("Max must be at least 0.5 seconds.");
+    else if (hi > DELAY_MAX) errors.push("Max cannot be more than 900 seconds.");
+    else if (!isHalfStep(hi)) errors.push("Max must be in steps of 0.5 seconds (for example 1 or 1.5).");
+  }
+  if (lo !== null && hi !== null && lo > hi) {
+    errors.push("Min must be less than or equal to max.");
+  }
+  return errors;
+}
+
+export function colorSettingsErrors(color: { slots?: unknown; delayLo?: unknown; delayHi?: unknown } | null | undefined): string[] {
+  const c = color || {};
+  return colorSlotErrors(c.slots).concat(colorDelayErrors(c.delayLo, c.delayHi));
+}
+
+export function colorChangeLabel(n: number, lo: number, hi: number): string {
+  const count = n | 0;
+  if (lo === hi) return "Change between " + count + " colors every " + formatDelaySec(lo) + " seconds";
+  return "Change between " + count + " colors every " + formatDelaySec(lo) + " to " + formatDelaySec(hi) + " seconds";
+}
+
+export function colorDelayBounds(loStr: unknown, hiStr: unknown): { L: number; U: number } {
+  if (colorDelayErrors(loStr, hiStr).length) return { L: DELAY_MIN, U: 3 };
+  return { L: parseNum(loStr) as number, U: parseNum(hiStr) as number };
 }
 
 export function nextColorDelayMs(color: ColorState, random = Math.random): number {
@@ -95,8 +207,44 @@ export function nextColorDelayMs(color: ColorState, random = Math.random): numbe
   return ((z.L + random() * (z.U - z.L)) * 1e3) | 0;
 }
 
-export function paletteForCount(count: number): string[] {
-  return PALETTE.slice(0, clampColorCount(count)) as unknown as string[];
+export function activePalette(color: ColorState): string[] {
+  const picked = pickedColors(color.slots);
+  if (picked.length >= COLOR_MIN_PICKED) return picked;
+  return pickedColors(defaultColor().slots);
+}
+
+export function isLightHex(hex: string): boolean {
+  const h = String(hex).replace("#", "");
+  if (h.length !== 6) return false;
+  const n = parseInt(h, 16);
+  const r = (n >> 16) & 255;
+  const g = (n >> 8) & 255;
+  const b = n & 255;
+  return (r * 299 + g * 587 + b * 114) / 1000 > 168;
+}
+
+function migrateSlots(raw: { slots?: unknown; count?: unknown }): string[] {
+  if (Array.isArray(raw.slots)) return padSlots(raw.slots);
+  const n = Number(raw.count);
+  if (Number.isFinite(n) && n > 0) {
+    const take = Math.min(COLOR_SLOTS, Math.max(0, n | 0));
+    return padSlots(PALETTE.slice(0, take));
+  }
+  return defaultColor().slots.slice();
+}
+
+export function ensureColor(raw: unknown): ColorState {
+  const d = defaultColor();
+  if (!raw || typeof raw !== "object") return d;
+  const r = raw as { slots?: unknown; count?: unknown; delayLo?: unknown; delayHi?: unknown };
+  let slots = lockRequiredSlots(migrateSlots(r));
+  let delayLo = r.delayLo == null ? d.delayLo : String(r.delayLo);
+  let delayHi = r.delayHi == null ? d.delayHi : String(r.delayHi);
+  if (colorDelayErrors(delayLo, delayHi).length) {
+    delayLo = d.delayLo;
+    delayHi = d.delayHi;
+  }
+  return { slots, delayLo, delayHi };
 }
 
 export function clampChimeSec(n: unknown, fallback = CHIME_MIN): number {
@@ -324,7 +472,7 @@ export function newStatsItem(): StatsItem {
 export function emptyState(): AppState {
   return {
     layout: { order: ["color"] },
-    color: { count: 3, delayLo: "", delayHi: "" },
+    color: defaultColor(),
     chime: { mode: "fixed", fixed: 30, lo: 5, hi: 10 },
     time: { items: [] },
     stats: { items: [] },
@@ -337,11 +485,7 @@ export function ensureState(raw: unknown): AppState {
   const r = raw as Partial<AppState>;
   return {
     layout: { order: uniqueOrder(r.layout?.order ?? d.layout.order) },
-    color: {
-      count: clampColorCount(r.color?.count ?? 3),
-      delayLo: String(r.color?.delayLo ?? ""),
-      delayHi: String(r.color?.delayHi ?? ""),
-    },
+    color: ensureColor(r.color),
     chime: {
       mode: r.chime?.mode === "random" ? "random" : "fixed",
       fixed: clampChimeSec(r.chime?.fixed, 30),

@@ -1,16 +1,11 @@
 {
   "layout": {
-    "order": [
-      "color",
-      "time",
-      "stats",
-      "chime"
-    ]
+    "order": ["color"]
   },
   "color": {
-    "count": 6,
+    "slots": ["#F5D547", "#FF6F61", "", "", "", ""],
     "delayLo": "0.5",
-    "delayHi": "4.5"
+    "delayHi": "3"
   },
   "chime": {
     "mode": "random",
@@ -19,136 +14,9 @@
     "hi": 10
   },
   "time": {
-    "items": [
-      {
-        "id": "tmtjikga61q10",
-        "type": "timer",
-        "name": "",
-        "running": false,
-        "runStartedAt": null,
-        "durationMs": 630000,
-        "remainingMs": 0,
-        "elapsedMs": 0,
-        "laps": []
-      },
-      {
-        "id": "tmtjino81t4b5",
-        "type": "stopwatch",
-        "name": "lap run",
-        "running": false,
-        "runStartedAt": null,
-        "durationMs": 0,
-        "remainingMs": 0,
-        "elapsedMs": 0,
-        "laps": []
-      },
-      {
-        "id": "tmtjix5gwfs9u",
-        "type": "timer",
-        "name": "",
-        "running": false,
-        "runStartedAt": null,
-        "durationMs": 60000,
-        "remainingMs": 60000,
-        "elapsedMs": 0,
-        "laps": []
-      }
-    ]
+    "items": []
   },
   "stats": {
-    "items": [
-      {
-        "id": "smtji3mm0b910",
-        "name": "Michael",
-        "pairs": [
-          {
-            "key": "name",
-            "value": "Micheal"
-          },
-          {
-            "key": "Last Name",
-            "value": "Nwobosi"
-          },
-          {
-            "key": "Keepups",
-            "value": "100"
-          },
-          {
-            "key": "Stimna laps",
-            "value": "4.x 400 m"
-          },
-          {
-            "key": "",
-            "value": ""
-          },
-          {
-            "key": "",
-            "value": ""
-          },
-          {
-            "key": "",
-            "value": ""
-          },
-          {
-            "key": "",
-            "value": ""
-          },
-          {
-            "key": "",
-            "value": ""
-          },
-          {
-            "key": "",
-            "value": ""
-          }
-        ]
-      },
-      {
-        "id": "smtji4cg87smb",
-        "name": "Pooyan",
-        "pairs": [
-          {
-            "key": "name",
-            "value": "Pooyan"
-          },
-          {
-            "key": "lname",
-            "value": "Najafi"
-          },
-          {
-            "key": "Keepups",
-            "value": "90"
-          },
-          {
-            "key": "Stamina",
-            "value": "5 x 400m"
-          },
-          {
-            "key": "",
-            "value": ""
-          },
-          {
-            "key": "",
-            "value": ""
-          },
-          {
-            "key": "",
-            "value": ""
-          },
-          {
-            "key": "",
-            "value": ""
-          },
-          {
-            "key": "",
-            "value": ""
-          },
-          {
-            "key": "",
-            "value": ""
-          }
-        ]
-      }
-    ]
+    "items": []
   }
 }

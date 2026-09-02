@@ -1,11 +1,36 @@
 export const WIDGET_IDS = ["color", "chime", "time", "stats"];
 export const MAX_WIDGETS = 4;
 
+export const APP_INFO = {
+  title: "Decisive",
+  about: "A drill board for athletes and coaches. Keep reaction, interval, clock, and notes on one screen — up to four tools, all live — so the session does not stop for a phone clock or clipboard."
+};
+
 export const WIDGET_META = {
-  color: { title: "Color change", blurb: "Full-screen colour drills", icon: "◐" },
-  chime: { title: "Interval chime", blurb: "Sound on a fixed or random beat", icon: "music-note" },
-  time: { title: "Time", blurb: "Timers and stopwatches", icon: "⏱" },
-  stats: { title: "Stats", blurb: "Ten key / value field notes", icon: "▦" }
+  color: {
+    title: "Color change",
+    blurb: "Full-screen colour drills",
+    icon: "◐",
+    about: "Reaction drills. Pick two to six colours. The fill flips after a random wait between min and max. Call the colour — or the action it means — before it changes."
+  },
+  chime: {
+    title: "Interval chime",
+    blurb: "Sound on a fixed or random beat",
+    icon: "music-note",
+    about: "A beep on a fixed or random beat for work/rest, keep-ups, or shuttles. Pause when you talk."
+  },
+  time: {
+    title: "Time",
+    blurb: "Timers and stopwatches",
+    icon: "⏱",
+    about: "Up to five timers and stopwatches. Tap a name to rename. Double-click the time to open that clock. Stopwatch laps fill a 3×10 grid."
+  },
+  stats: {
+    title: "Stats",
+    blurb: "Ten key / value field notes",
+    icon: "▦",
+    about: "Field notes: names, keep-ups, splits. Ten key/value pairs per sheet. Tap the name to rename; tap ▦ to open the fields."
+  }
 };
 
 export function uniqueOrder(order) {

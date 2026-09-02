@@ -1,5 +1,6 @@
 import { WIDGET_META, removeWidget, swapWidgets } from "./logic/order.js";
-import { openConfirm } from "./dialog.js";
+import { openConfirm, openInfo } from "./dialog.js";
+import { phEl } from "./icons.js";
 import { mountColor } from "./widgets/color.js";
 import { mountChime } from "./widgets/chime.js";
 import { mountTime } from "./widgets/time.js";
@@ -17,7 +18,7 @@ function iconBtn(cls, label, text) {
   b.className = "icon-btn " + cls;
   b.type = "button";
   b.setAttribute("aria-label", label);
-  b.textContent = text;
+  if (text) b.textContent = text;
   return b;
 }
 
@@ -88,10 +89,15 @@ export function createBoard(board, api) {
     const title = document.createElement("span");
     title.className = "title";
     title.textContent = WIDGET_META[id].title;
+    const info = iconBtn("info", "About " + WIDGET_META[id].title, "");
+    info.append(phEl("info"));
     const gear = iconBtn("gear", "Settings", "⚙");
     const trash = iconBtn("remove", "Remove", "✕");
     const expandBtn = iconBtn("expand", "Expand", "↗");
-    bar.append(drag, title, gear, trash, expandBtn);
+    const actions = document.createElement("div");
+    actions.className = "widget-bar-actions";
+    actions.append(info, gear, trash, expandBtn);
+    bar.append(drag, title, actions);
     const body = document.createElement("div");
     body.className = "widget-body";
     el.append(bar, body);
@@ -107,6 +113,10 @@ export function createBoard(board, api) {
       onChange(fn) { listeners.add(fn); }
     };
     const widgetApi = MOUNTS[id](body, ctx);
+    info.onclick = (e) => {
+      e.stopPropagation();
+      openInfo({ title: WIDGET_META[id].title, body: WIDGET_META[id].about });
+    };
     gear.onclick = (e) => {
       e.stopPropagation();
       if (widgetApi.openSettings) widgetApi.openSettings();

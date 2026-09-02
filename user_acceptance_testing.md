@@ -8,22 +8,24 @@ Fill `pass` as you run. Deployed URL: GitHub Pages (`https://<user>.github.io/<r
 
 ### Localhost
 1. Run `python3 dev/serve.py` and open `http://127.0.0.1:8080/`.
-2. Expected: Colour widget fills the board; coral **+** is bottom-left.
-3. Tap **+**. Expected: picker lists Color, Interval chime, Time, Stats. Color is dim with a **green check**. Others have a **blue/white +**.
-4. Tap Interval chime and Time, then **Save**. Expected: 3-cell grid (two on top, one spanning below on wide screens).
-5. Drag a widget handle (⋮⋮) onto another. Expected: they swap; reload keeps the order.
-6. Expand (↗) a widget. Expected: it covers the **whole screen**, gear visible if that widget has settings, **+** hidden. Contract (↙) returns to the grid.
-7. Remove (✕) a widget, confirm. Expected: confirm dialog matches the theme; widget gone.
-8. Add until four widgets. Open picker. Expected: all four dim with green checks; cannot add a fifth type.
+2. Expected: Colour widget fills the board; coral **+** is bottom-left, with a Phosphor **info** mark beside it (same circled-i style as the chime icons).
+3. Tap the board **info**. Expected: a compact popout (no scroll) describes the drill board; tap outside or ✕ to close (it fades out).
+4. Tap **+**. Expected: picker lists Color, Interval chime, Time, Stats. Color is dim with a **green check**. Others have a **blue/white +**.
+5. Tap Interval chime and Time, then **Save**. Expected: 3-cell grid (two on top, one spanning below on wide screens).
+6. On a widget bar, tap **info**. Expected: a short “what this is for” popout for that widget.
+7. Drag a widget handle (⋮⋮) onto another. Expected: they swap; reload keeps the order.
+8. Expand (↗) a widget. Expected: it covers the **whole screen**, gear visible if that widget has settings, **+** and board info hidden. Contract (↙) returns to the grid.
+9. Remove (✕) a widget, confirm. Expected: confirm dialog matches the theme; widget gone.
+10. Add until four widgets. Open picker. Expected: all four dim with green checks; cannot add a fifth type.
 
 ### GitHub Pages (github.io)
 1. Open the Pages URL after deploy.
-2. Repeat localhost steps 2–8.
+2. Repeat localhost steps 2–10.
 3. Expected: same layout and persist after refresh (localStorage). PUT to `data/state.json` may 404; that is OK.
 
 ### Mobile app
 1. `cd apps/mobile && npx expo start` and open in Expo Go.
-2. Expected: same four widget types, **+** bottom-left, picker checks vs add, expand/contract, confirm on remove, max 4.
+2. Expected: same four widget types, **+** bottom-left with board **info**, picker checks vs add, expand/contract, confirm on remove, max 4. Widget-bar **info** opens the same short copy.
 3. Long-press a widget, then tap another. Expected: positions swap.
 
 ---
@@ -31,17 +33,20 @@ Fill `pass` as you run. Deployed URL: GitHub Pages (`https://<user>.github.io/<r
 ## Feature name: Color change
 
 ### Localhost
-1. With Color on the board (default), watch the fill. Expected: coral, periwinkle, magenta (and companions), not harsh orange/lime.
-2. Expand Color, tap gear. Set count 2–6 and delay bounds. Save, confirm.
-3. Expected: second confirm “Save these settings?”; after Save, cycle uses the new count and delay.
-4. Shrink the widget. Expected: colour still cycles in the cell.
+1. With Color on the board (default), watch the fill. Expected: yellow and coral orange (unless you changed the pickers).
+2. Expand Color, tap gear. Expected: 2×3 colour cells (first two filled with **no ✕**, rest **None**); **Min** / **Max** with − / + in 0.5 steps. Clicking the dimmed area around the box does not close it; only **Save** or **Cancel**.
+3. Try to clear the first two cells. Expected: no ✕; they stay selected. Extra cells can be cleared.
+4. Restore two colours. Set min `4`, max `2`. Expected: error *Min must be less than or equal to max*; **Save** disabled.
+5. Set min `0.5`, max `3`. Expected: *Change between 2 colors every 0.5 to 3 seconds*; **Save** enabled. Save, confirm.
+6. Set min = max (e.g. both `2`). Expected: *Change between N colors every 2 seconds*.
+7. Shrink the widget. Expected: colour still cycles in the cell.
 
 ### GitHub Pages (github.io)
 1. Open Pages, expand Color, change delay, Save, refresh.
 2. Expected: settings persist (localStorage).
 
 ### Mobile app
-1. Open Color widget, confirm cycling palette and settings sheet (count + delay). Save.
+1. Open Color widget, confirm cycling palette and settings (2×3 pickers, min/max 0.5–900). Save disabled on errors.
 2. Expected: same behaviour as web; continues while other widgets are visible.
 
 ---
