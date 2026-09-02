@@ -15,6 +15,7 @@ import {
   resetItem,
   setTimerDuration,
   startItem,
+  TIME_NAME_MAX,
   timeDisplayName
 } from "../logic/time.js";
 import { openChoices, openConfirm } from "../dialog.js";
@@ -76,11 +77,12 @@ export function mountTime(body, ctx) {
       nameBtn.onclick = () => startRename(nameBtn, it, i);
       const openBtn = btn("time-open", "");
       openBtn.setAttribute("aria-label", "Open " + timeDisplayName(it, i));
+      openBtn.title = "Double-click to open";
       const meta = document.createElement("span");
       meta.className = "meta";
       meta.dataset.id = it.id;
       openBtn.append(meta);
-      openBtn.onclick = () => openDetail(it.id);
+      openBtn.ondblclick = () => openDetail(it.id);
       const trash = btn("icon-btn", "✕");
       trash.onclick = async () => {
         const ok = await openConfirm({
@@ -121,7 +123,7 @@ export function mountTime(body, ctx) {
     const input = document.createElement("input");
     input.className = "time-name-input";
     input.type = "text";
-    input.maxLength = "10";
+    input.maxLength = String(TIME_NAME_MAX);
     input.autocomplete = "off";
     input.spellcheck = false;
     input.value = timeDisplayName(it, index);
@@ -237,6 +239,12 @@ export function mountTime(body, ctx) {
       for (let i = 0; i < MAX_LAPS; i++) {
         const cell = document.createElement("div");
         cell.className = "lap-cell";
+        const n = document.createElement("span");
+        n.className = "lap-n";
+        n.textContent = String(i + 1);
+        const t = document.createElement("span");
+        t.className = "lap-t";
+        cell.append(n, t);
         grid.append(cell);
       }
       clock.append(grid);
@@ -275,7 +283,9 @@ export function mountTime(body, ctx) {
         const last = laps.length - 1;
         detail.querySelectorAll(".lap-cell").forEach((cell, i) => {
           const ms = laps[i];
-          cell.textContent = ms != null ? (i + 1) + "  " + formatStopwatch(ms) : "";
+          const t = cell.querySelector(".lap-t");
+          if (t) t.textContent = ms != null ? formatStopwatch(ms) : "";
+          cell.classList.toggle("is-filled", ms != null);
           cell.classList.toggle("is-on", i === last && ms != null);
         });
       }

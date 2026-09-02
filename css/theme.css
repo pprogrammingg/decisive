@@ -57,18 +57,19 @@ button {
 }
 
 .ph-icon {
-  display: block;
+  display: grid;
+  place-items: center;
   width: 1em;
   height: 1em;
   flex-shrink: 0;
-  background-color: currentColor;
-  -webkit-mask: var(--ph) center / contain no-repeat;
-  mask: var(--ph) center / contain no-repeat;
+  line-height: 0;
 }
 
-.ph-icon[data-ph="music-note"] { --ph: url("../assets/icons/music-note.svg"); }
-.ph-icon[data-ph="pause"] { --ph: url("../assets/icons/pause.svg"); }
-.ph-icon[data-ph="play"] { --ph: url("../assets/icons/play.svg"); }
+.ph-icon svg {
+  width: 1em;
+  height: 1em;
+  display: block;
+}
 
 @media (hover: hover) and (pointer: fine) {
   .icon-btn:hover,

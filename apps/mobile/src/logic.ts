@@ -22,7 +22,7 @@ export const WIDGET_META: Record<
 
 export const MAX_WIDGETS = 4;
 export const MAX_SUB = 5;
-export const TIME_NAME_MAX = 10;
+export const TIME_NAME_MAX = 15;
 export const LAP_COLS = 3;
 export const LAP_ROWS = 10;
 export const MAX_LAPS = LAP_COLS * LAP_ROWS;

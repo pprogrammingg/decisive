@@ -16,6 +16,7 @@ import {
   renameTimeItem,
   resetItem,
   startItem,
+  TIME_NAME_MAX,
   timeDisplayName,
   type TimeItem,
 } from "../logic";
@@ -35,6 +36,7 @@ export function TimePane({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftName, setDraftName] = useState("");
   const zeroLock = useRef(new Set<string>());
+  const lastTap = useRef({ id: "", at: 0 });
   const open = items.find((x) => x.id === openId);
   const openIndex = items.findIndex((x) => x.id === openId);
 
@@ -65,6 +67,16 @@ export function TimePane({
 
   function patch(id: string, fn: (it: TimeItem) => TimeItem) {
     onChange(items.map((it) => (it.id === id ? fn(it) : it)));
+  }
+
+  function openOnDoubleTap(id: string) {
+    const t = Date.now();
+    if (lastTap.current.id === id && t - lastTap.current.at < 400) {
+      lastTap.current = { id: "", at: 0 };
+      setOpenId(id);
+      return;
+    }
+    lastTap.current = { id, at: t };
   }
 
   function commitName(it: TimeItem) {
@@ -139,18 +151,18 @@ export function TimePane({
         {!isTimer ? (
           <View style={styles.lapGrid}>
             {Array.from({ length: LAP_COLS }, (_, col) => (
-              <View key={col} style={styles.lapCol}>
+              <View key={col} style={[styles.lapCol, col > 0 && styles.lapColRule]}>
                 {Array.from({ length: LAP_ROWS }, (_, row) => {
                   const i = col * LAP_ROWS + row;
                   const ms = laps[i];
+                  const on = i === laps.length - 1 && ms != null;
                   return (
-                    <Text
-                      key={i}
-                      style={[styles.lapCell, i === laps.length - 1 && ms != null && styles.lapOn]}
-                      numberOfLines={1}
-                    >
-                      {ms != null ? i + 1 + "  " + formatStopwatch(ms) : " "}
-                    </Text>
+                    <View key={i} style={styles.lapCell}>
+                      <Text style={[styles.lapN, on && styles.lapNOn]}>{i + 1}</Text>
+                      <Text style={[styles.lapT, ms != null && styles.lapFilled, on && styles.lapOn]}>
+                        {ms != null ? formatStopwatch(ms) : "––:––.––"}
+                      </Text>
+                    </View>
                   );
                 })}
               </View>
@@ -169,7 +181,7 @@ export function TimePane({
             <TextInput
               style={styles.itemInput}
               autoFocus
-              maxLength={10}
+              maxLength={TIME_NAME_MAX}
               value={draftName}
               onChangeText={setDraftName}
               onBlur={() => commitName(it)}
@@ -188,7 +200,7 @@ export function TimePane({
               <Text style={styles.itemT} numberOfLines={1}>{timeDisplayName(it, i)}</Text>
             </Pressable>
           )}
-          <Pressable onPress={() => setOpenId(it.id)} onLongPress={() => removeItem(it)}>
+          <Pressable style={styles.itemOpen} onPress={() => openOnDoubleTap(it.id)} onLongPress={() => removeItem(it)}>
             <Text style={styles.meta}>
               {it.type === "timer" ? formatTimer(displayTimerMs(it, now)) : formatStopwatch(displayStopwatchMs(it, now))}
             </Text>
@@ -255,7 +267,8 @@ const styles = StyleSheet.create({
   go: { backgroundColor: colors.ok },
   actT: { color: colors.cream, fontWeight: "700" },
   item: { flexDirection: "row", alignItems: "center", gap: 8, padding: 10, borderRadius: 14, backgroundColor: "#ffffff10" },
-  itemName: { flex: 1, minWidth: 0, paddingVertical: 4 },
+  itemName: { flexGrow: 0, flexShrink: 1, maxWidth: "58%", minWidth: 0, paddingVertical: 4 },
+  itemOpen: { flex: 1, alignItems: "flex-end", justifyContent: "center", minWidth: 0, paddingVertical: 4 },
   itemT: { color: colors.cream, fontWeight: "700" },
   itemInput: {
     flex: 1,
@@ -272,9 +285,26 @@ const styles = StyleSheet.create({
   add: { padding: 14, borderRadius: 14, borderWidth: 1, borderStyle: "dashed", borderColor: colors.periwinkle, alignItems: "center" },
   pressRow: { backgroundColor: colors.pressActive, transform: [{ scale: 0.98 }] },
   addT: { color: colors.periwinkle, fontWeight: "700" },
-  lapGrid: { flex: 1, flexDirection: "row", minHeight: 0, gap: 8, paddingHorizontal: 8, paddingBottom: 8, marginTop: 8 },
-  lapCol: { flex: 1, justifyContent: "space-evenly" },
-  lapCell: { color: colors.muted, fontSize: 11, fontVariant: ["tabular-nums"] },
-  lapOn: { color: colors.cream, fontWeight: "700" },
+  lapGrid: {
+    flex: 1,
+    flexDirection: "row",
+    alignSelf: "center",
+    minHeight: 0,
+    marginTop: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: "#ffffff14",
+    borderRadius: 12,
+    backgroundColor: "#ffffff08",
+    paddingVertical: 4,
+  },
+  lapCol: { justifyContent: "space-evenly", paddingHorizontal: 10 },
+  lapColRule: { borderLeftWidth: 1, borderLeftColor: "#ffffff14" },
+  lapCell: { flexDirection: "row", alignItems: "center", gap: 6 },
+  lapN: { width: 16, textAlign: "right", color: colors.muted, fontSize: 10, fontWeight: "700", opacity: 0.45 },
+  lapNOn: { color: colors.periwinkle, opacity: 1 },
+  lapT: { color: colors.muted, fontSize: 12, fontVariant: ["tabular-nums"], letterSpacing: 0.4, opacity: 0.28 },
+  lapFilled: { opacity: 0.85, color: colors.cream },
+  lapOn: { opacity: 1, color: colors.cream, fontWeight: "700" },
   muted: { color: colors.muted, textAlign: "center" },
 });

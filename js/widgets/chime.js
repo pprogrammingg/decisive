@@ -1,6 +1,6 @@
 import { clampChimeSec, formatChimeEta, nextChimeDelayMs } from "../logic/chime.js";
 import { openForm } from "../dialog.js";
-import { phEl } from "../icons.js";
+import { phEl, setPh } from "../icons.js";
 import { audioBlocked, playChime, unlockAudio } from "../sound.js";
 
 export function mountChime(body, ctx) {
@@ -39,7 +39,7 @@ export function mountChime(body, ctx) {
   };
 
   function paintToggle() {
-    toggleIcon.dataset.ph = paused ? "play" : "pause";
+    setPh(toggleIcon, paused ? "play" : "pause");
     toggle.setAttribute("aria-label", paused ? "Resume" : "Pause");
     face.classList.toggle("is-paused", paused);
   }

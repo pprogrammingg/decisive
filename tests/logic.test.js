@@ -28,6 +28,7 @@ import {
   renameTimeItem,
   resetItem,
   startItem,
+  TIME_NAME_MAX,
   timeDisplayName
 } from "../js/logic/time.js";
 import {
@@ -182,11 +183,14 @@ describe("time sub-widgets", () => {
     assert.equal(it.laps.length, MAX_LAPS);
     assert.equal(MAX_LAPS, 30);
   });
-  it("renames clamp to 10 chars", () => {
+  it("renames clamp to 15 chars", () => {
+    assert.equal(TIME_NAME_MAX, 15);
     assert.equal(timeDisplayName({ type: "timer", name: "" }, 0), "Timer 1");
     let items = addTimeItem([], "timer");
-    items = renameTimeItem(items, items[0].id, "  warmupdrill  ");
-    assert.equal(timeDisplayName(items[0], 0), "warmupdril");
+    items = renameTimeItem(items, items[0].id, "warmup");
+    assert.equal(timeDisplayName(items[0], 0), "warmup");
+    items = renameTimeItem(items, items[0].id, "  abcdefghijklmnop  ");
+    assert.equal(timeDisplayName(items[0], 0), "abcdefghijklmno");
     items = renameTimeItem(items, items[0].id, "   ");
     assert.equal(timeDisplayName(items[0], 0), "Timer 1");
     items = addTimeItem(items, "stopwatch");

@@ -70,10 +70,10 @@ Fill `pass` as you run. Deployed URL: GitHub Pages (`https://<user>.github.io/<r
 
 ### Localhost
 1. Add Time. Tap **+ Add timer or stopwatch**, pick Timer. Repeat for Stopwatch. Add up to 5. Expected: sixth add is not offered.
-2. Tap a Timer row. Expected: widget expands; h/m/s, Start / Pause / Reset / +1:00, Android-like digits.
+2. Double-click the time (not the name) on a Timer row. Expected: that clock’s settings open (h/m/s, Start / Pause / Reset / +1:00).
 3. Start a short timer. Expected: counts down; at 0 it stops and plays a done tone.
 4. Open Stopwatch: Start, **Lap**, Pause. Expected: each Lap fills the next cell in a **3-column × 10-row** grid (down the first column, then the next). No Laps sheet. Reset clears the grid. The 31st Lap does not add.
-5. Tap a **Timer 1** / **Stopwatch 1** label (not the digits). Type a name (max 10). Blur or Enter. Expected: label updates; empty falls back to Timer 1 / Stopwatch 1. Tap the time digits to open the clock.
+5. Tap a **Timer 1** / **Stopwatch 1** label (not the digits). Type a name (max 15). Blur or Enter. Expected: label updates; empty falls back to Timer 1 / Stopwatch 1.
 6. Remove a sub-widget. Expected: themed confirm, then gone. Refresh restores remaining items.
 
 ### GitHub Pages (github.io)
@@ -81,7 +81,7 @@ Fill `pass` as you run. Deployed URL: GitHub Pages (`https://<user>.github.io/<r
 2. Expected: list and values restore; running clocks continue from saved timestamps.
 
 ### Mobile app
-1. Same add/list/detail flow (not a WebView). Stopwatch shows a 3×10 lap grid; tap the name to rename like stats.
+1. Same add/list/detail flow (not a WebView). Double-tap the time (not the name) to open that clock. Stopwatch shows a 3×10 lap grid; tap the name to rename (max 15).
 2. Expected: max 5; confirm on delete.
 
 ---
