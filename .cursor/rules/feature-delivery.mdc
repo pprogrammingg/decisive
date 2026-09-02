@@ -5,6 +5,8 @@ alwaysApply: true
 
 # Feature delivery
 
+Commits use `<EPIC_CODE>-<TASK> : <description>` from `roadmap.json` (see `.cursor/rules/epic-commits.mdc`).
+
 A feature is not done until all of these exist (see `roadmap.md`):
 
 1. **Unit tests** for extracted logic (`tests/`).

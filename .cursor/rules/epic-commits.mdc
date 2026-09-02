@@ -1,0 +1,42 @@
+---
+description: Epic/task ids in the roadmap and on every commit message
+alwaysApply: true
+---
+
+# Epic tasks and commits
+
+Same convention as `../JAMMIN`: every piece of work is an epic subtask, and every commit names that task.
+
+## Roadmap
+
+- Human: [`roadmap.md`](roadmap.md) — epics, checkboxes labeled `CODE-N`.
+- Machine: [`roadmap.json`](roadmap.json) — `code`, `subtasks[].task`, `subtasks[].done`, optional `commits` (short SHAs).
+- New work: add or extend an epic **before** coding when possible. Mark `- [x]` / `"done": true` when the task lands.
+- Tests stay lean: unit tests in `tests/`, UAT sections in `user_acceptance_testing.md` (not a five-layer `doc/testing/` tree).
+
+## Commits
+
+First line **must** be:
+
+`<EPIC_CODE>-<TASK> : <description>`
+
+Example: `UX001-1 : Add board and widget info popouts`
+
+- `EPIC_CODE` is two letters + three digits from `roadmap.json` (e.g. `UX001`).
+- `TASK` is the subtask number (1, 2, …).
+- Space, colon, space, then a short description. Keep the repo’s `- YES` suffix if the user wants it on that commit.
+- Merge commits are exempt. Do not use `--no-verify` unless the user asks.
+- One commit should map to **one** task. If a diff spans tasks, split commits or pick the primary task and note siblings in the body.
+- After a commit, append its short SHA to that epic’s `commits` array in `roadmap.json` when you are already touching the roadmap (or in the same epic’s follow-up).
+
+Enable the hook once (do not set `core.hooksPath` unless the user runs this):
+
+```bash
+./scripts/setup-git-hooks.sh
+```
+
+## Do not
+
+- Commit with a free-form title (`fix gear`, `UI improvements - YES`) once this rule exists.
+- Invent an epic code that is missing from `roadmap.json`.
+- Rewrite old SHAs to retcon the prefix; associate them via `commits` on the epic instead.

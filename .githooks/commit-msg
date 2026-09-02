@@ -1,0 +1,24 @@
+#!/bin/sh
+# Enforce: <EPIC_CODE>-<TASK_NUMBER> : <description>
+# Epic code: 2 letters + 3 digits (e.g. UX001). Task: 1, 2, 3, ...
+# See roadmap.json and roadmap.md for epic codes and task numbers.
+
+commit_msg_file="$1"
+first_line=$(head -n1 "$commit_msg_file" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+
+# Git-generated merge commits
+case "$first_line" in
+  Merge\ *) exit 0 ;;
+esac
+
+pattern='^[A-Z]{2}[0-9]{3}-[0-9]+ : .+'
+
+if ! printf '%s\n' "$first_line" | grep -Eq "$pattern"; then
+  echo "commit-msg hook: first line must match '<EPIC_CODE>-<TASK> : <description>'" >&2
+  echo "  Example: UX001-1 : Add board and widget info popouts" >&2
+  echo "  Epic codes and task numbers: roadmap.json / roadmap.md" >&2
+  echo "  Got: $first_line" >&2
+  exit 1
+fi
+
+exit 0

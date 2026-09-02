@@ -1,0 +1,202 @@
+{
+  "version": 1,
+  "description": "Epic roadmap. Human-readable: roadmap.md. Tests: tests/ + user_acceptance_testing.md.",
+  "commit_format": "<EPIC_CODE>-<TASK_NUMBER> : <description>",
+  "commit_format_example": "UX001-1 : Add board and widget info popouts",
+  "epic_code_pattern": "Two uppercase letters + three digits (e.g. UX001)",
+  "layers": ["ui", "mobile"],
+  "test_kinds": ["unit", "user_acceptance_testing"],
+  "epics": [
+    {
+      "id": "roadmap-commits",
+      "code": "RM001",
+      "title": "Epic tasks and commit association",
+      "description": "Codify epics/tasks in roadmap files and require <EPIC_CODE>-<TASK> on every commit.",
+      "subtasks": [
+        { "task": 1, "text": "roadmap.md + roadmap.json with epic codes and task ids", "done": true },
+        { "task": 2, "text": "commit-msg hook + setup-git-hooks.sh", "done": true },
+        { "task": 3, "text": "Cursor rule (epic-commits.mdc) + feature-delivery commit line", "done": true }
+      ]
+    },
+    {
+      "id": "foundation",
+      "code": "FO001",
+      "title": "Foundation",
+      "description": "Theme, split files, dialogs, store, tests, UAT, mobile scaffold.",
+      "commits": ["acad971", "1b36142", "c8266a8", "1d22ec1", "b3a526b"],
+      "subtasks": [
+        { "task": 1, "text": "Theme CSS tokens", "done": true },
+        { "task": 2, "text": "Split index.html into CSS + JS modules", "done": true },
+        { "task": 3, "text": "Shared confirm + settings dialogs", "done": true },
+        { "task": 4, "text": "Shared JSON store", "done": true },
+        { "task": 5, "text": "Unit test harness", "done": true },
+        { "task": 6, "text": "UAT file", "done": true },
+        { "task": 7, "text": "Mobile Expo scaffold", "done": true }
+      ]
+    },
+    {
+      "id": "widget-shell",
+      "code": "WS001",
+      "title": "Widget shell",
+      "description": "Add picker, grid, expand/contract, remove, drag, simultaneous runtime.",
+      "commits": ["b3a526b", "b467e43"],
+      "subtasks": [
+        { "task": 1, "text": "Home + add picker (max 4)", "done": true },
+        { "task": 2, "text": "Grid + expand / contract", "done": true },
+        { "task": 3, "text": "Remove confirm + drag reorder", "done": true },
+        { "task": 4, "text": "Simultaneous runtime when shrunk", "done": true }
+      ]
+    },
+    {
+      "id": "color-change",
+      "code": "CC001",
+      "title": "Color change",
+      "description": "Reaction colour widget: cycle, settings, tests, mobile, UAT.",
+      "commits": ["acad971", "b3a526b"],
+      "subtasks": [
+        { "task": 1, "text": "Mount cycle in colour widget", "done": true },
+        { "task": 2, "text": "Palette", "done": true },
+        { "task": 3, "text": "Gear: count + delay range (first ship)", "done": true },
+        { "task": 4, "text": "Confirm on save settings", "done": true },
+        { "task": 5, "text": "Unit tests for delay and palette", "done": true },
+        { "task": 6, "text": "Mobile colour cycle + settings", "done": true },
+        { "task": 7, "text": "UAT: Color change", "done": true }
+      ]
+    },
+    {
+      "id": "interval-chime",
+      "code": "IC001",
+      "title": "Interval sound chime",
+      "description": "Fixed or random interval chime, 1–900 s, web audio + mobile haptic.",
+      "commits": ["b3a526b", "b467e43"],
+      "subtasks": [
+        { "task": 1, "text": "Gear: fixed or random 1–900 s", "done": true },
+        { "task": 2, "text": "Short chime after user gesture", "done": true },
+        { "task": 3, "text": "Confirm on save", "done": true },
+        { "task": 4, "text": "Unit tests: clamp, next delay", "done": true },
+        { "task": 5, "text": "Mobile audio / vibration + settings", "done": true },
+        { "task": 6, "text": "UAT: Interval sound chime", "done": true }
+      ]
+    },
+    {
+      "id": "time-widget",
+      "code": "TM001",
+      "title": "Time",
+      "description": "Up to 5 timer / stopwatch sub-widgets.",
+      "commits": ["b3a526b", "b467e43"],
+      "subtasks": [
+        { "task": 1, "text": "Add timer or stopwatch rows (max 5)", "done": true },
+        { "task": 2, "text": "Expand row to set / run; stopwatch laps", "done": true },
+        { "task": 3, "text": "Remove sub-widget via confirm; persist", "done": true },
+        { "task": 4, "text": "Unit tests: tick, laps, max 5", "done": true },
+        { "task": 5, "text": "Mobile Time screen", "done": true },
+        { "task": 6, "text": "UAT: Time widget", "done": true }
+      ]
+    },
+    {
+      "id": "stats-widget",
+      "code": "ST001",
+      "title": "Stats",
+      "description": "Up to 5 sheets with 10 key/value pairs.",
+      "commits": ["b3a526b"],
+      "subtasks": [
+        { "task": 1, "text": "Stats slots stats1…stats5", "done": true },
+        { "task": 2, "text": "10 key + 10 value inputs; persist", "done": true },
+        { "task": 3, "text": "Remove via confirm", "done": true },
+        { "task": 4, "text": "Unit tests: max 5, empty keys", "done": true },
+        { "task": 5, "text": "Mobile Stats screen", "done": true },
+        { "task": 6, "text": "UAT: Stats", "done": true }
+      ]
+    },
+    {
+      "id": "deploy-parity",
+      "code": "DP001",
+      "title": "Deploy + parity",
+      "description": "GitHub Pages persist fallback, UAT Pages steps, mobile store.",
+      "commits": ["b467e43", "81734b4"],
+      "subtasks": [
+        { "task": 1, "text": "GitHub Pages static root + localStorage persist", "done": true },
+        { "task": 2, "text": "Simultaneous widgets on Pages", "done": true },
+        { "task": 3, "text": "UAT GitHub Pages steps for shipped features", "done": true },
+        { "task": 4, "text": "Mobile UAT + AsyncStorage same schema", "done": true }
+      ]
+    },
+    {
+      "id": "board-ux",
+      "code": "UX001",
+      "title": "Board UX (info, color pickers, chrome)",
+      "description": "Info popouts, color slot pickers and delay steppers, settings dismiss rules, gear/FAB chrome, louder chime.",
+      "commits": [],
+      "subtasks": [
+        { "task": 1, "text": "Board + widget info popouts (web + mobile)", "done": true },
+        { "task": 2, "text": "Color: 2×3 slots, locked first two, delay 0.5–900 steppers", "done": true },
+        { "task": 3, "text": "Settings: Save/Cancel only; info still closes outside", "done": true },
+        { "task": 4, "text": "Gear/info bar alignment + periwinkle FAB", "done": true },
+        { "task": 5, "text": "Louder / slightly longer chime (web) + mobile haptic", "done": true },
+        { "task": 6, "text": "Unit tests, UAT, README for this epic", "done": true }
+      ]
+    },
+    {
+      "id": "security-scan",
+      "code": "SC001",
+      "title": "Security scan and fix",
+      "description": "Scan → triage → fix → re-scan before Pages/store release.",
+      "subtasks": [
+        { "task": 1, "text": "Cursor security review", "done": false },
+        { "task": 2, "text": "Dependency audit (npm audit --omit=dev)", "done": false },
+        { "task": 3, "text": "Secret scan", "done": false },
+        { "task": 4, "text": "Web threat pass", "done": false },
+        { "task": 5, "text": "Mobile threat pass", "done": false },
+        { "task": 6, "text": "Triage findings", "done": false },
+        { "task": 7, "text": "Fix", "done": false },
+        { "task": 8, "text": "Re-scan", "done": false },
+        { "task": 9, "text": "UAT: Security", "done": false }
+      ]
+    },
+    {
+      "id": "android-release",
+      "code": "AN001",
+      "title": "Android Play Store",
+      "description": "EAS + Play Console internal testing then production.",
+      "subtasks": [
+        { "task": 1, "text": "Play Console account", "done": false },
+        { "task": 2, "text": "Expo / EAS init", "done": false },
+        { "task": 3, "text": "Unique applicationId", "done": false },
+        { "task": 4, "text": "Store assets", "done": false },
+        { "task": 5, "text": "Privacy policy URL", "done": false },
+        { "task": 6, "text": "Data safety form", "done": false },
+        { "task": 7, "text": "Finish SC001 on the ship commit", "done": false },
+        { "task": 8, "text": "eas.json preview + production", "done": false },
+        { "task": 9, "text": "Preview build + mobile UAT", "done": false },
+        { "task": 10, "text": "Production AAB", "done": false },
+        { "task": 11, "text": "Internal testing track", "done": false },
+        { "task": 12, "text": "Store listing", "done": false },
+        { "task": 13, "text": "Promote to production", "done": false },
+        { "task": 14, "text": "Tag android-1.0.0; bump versionCode", "done": false }
+      ]
+    },
+    {
+      "id": "ios-release",
+      "code": "IO001",
+      "title": "iOS App Store",
+      "description": "EAS + TestFlight + App Review.",
+      "subtasks": [
+        { "task": 1, "text": "Apple Developer Program", "done": false },
+        { "task": 2, "text": "App Store Connect access", "done": false },
+        { "task": 3, "text": "Bundle ID", "done": false },
+        { "task": 4, "text": "EAS iOS credentials", "done": false },
+        { "task": 5, "text": "1024 App Store icon", "done": false },
+        { "task": 6, "text": "Privacy questionnaire", "done": false },
+        { "task": 7, "text": "Finish SC001 on the ship commit", "done": false },
+        { "task": 8, "text": "Preview iOS build", "done": false },
+        { "task": 9, "text": "Production IPA", "done": false },
+        { "task": 10, "text": "Upload to App Store Connect", "done": false },
+        { "task": 11, "text": "TestFlight + mobile UAT", "done": false },
+        { "task": 12, "text": "Listing screenshots + copy", "done": false },
+        { "task": 13, "text": "Age rating + review notes", "done": false },
+        { "task": 14, "text": "Submit for App Review", "done": false },
+        { "task": 15, "text": "Tag ios-1.0.0; bump buildNumber", "done": false }
+      ]
+    }
+  ]
+}
