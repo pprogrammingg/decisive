@@ -12,6 +12,7 @@
       "code": "RM001",
       "title": "Epic tasks and commit association",
       "description": "Codify epics/tasks in roadmap files and require <EPIC_CODE>-<TASK> on every commit.",
+      "commits": ["6413bb5"],
       "subtasks": [
         { "task": 1, "text": "roadmap.md + roadmap.json with epic codes and task ids", "done": true },
         { "task": 2, "text": "commit-msg hook + setup-git-hooks.sh", "done": true },
@@ -126,7 +127,7 @@
       "code": "UX001",
       "title": "Board UX (info, color pickers, chrome)",
       "description": "Info popouts, color slot pickers and delay steppers, settings dismiss rules, gear/FAB chrome, louder chime.",
-      "commits": [],
+      "commits": ["e9c403c"],
       "subtasks": [
         { "task": 1, "text": "Board + widget info popouts (web + mobile)", "done": true },
         { "task": 2, "text": "Color: 2×3 slots, locked first two, delay 0.5–900 steppers", "done": true },
