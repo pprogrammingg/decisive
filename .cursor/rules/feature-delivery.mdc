@@ -1,0 +1,17 @@
+---
+description: Tests, UAT, mobile parity, and persist for every feature
+alwaysApply: true
+---
+
+# Feature delivery
+
+A feature is not done until all of these exist (see `roadmap.md`):
+
+1. **Unit tests** for extracted logic (`tests/`).
+2. **`user_acceptance_testing.md`** section named after the feature, with steps for localhost, GitHub Pages, and the mobile app.
+3. **Mobile screen** in `apps/mobile` with the same behaviour (Expo, persist like `../sub_zero` AsyncStorage).
+4. **Shared JSON** — widget reads/writes only its key; all widgets may run at once.
+
+Caps: 4 widgets on the board; 5 time sub-widgets; 5 stats slots; chime 1–900 s. Confirm before delete or save settings.
+
+Picker: added types dim + green check; available types full colour + blue/white add. Plus control is bottom-left.

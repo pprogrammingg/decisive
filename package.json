@@ -1,0 +1,11 @@
+{
+  "name": "decisive",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "ci": "node scripts/ci.mjs",
+    "serve": "python3 dev/serve.py",
+    "mobile": "npm start --prefix apps/mobile"
+  }
+}

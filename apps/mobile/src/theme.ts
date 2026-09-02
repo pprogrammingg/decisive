@@ -1,0 +1,15 @@
+export const colors = {
+  ink: "#0c0d14",
+  ink2: "#161824",
+  cream: "#f4efe6",
+  muted: "#9aa3b8",
+  coral: "#ff6f61",
+  periwinkle: "#8b9bff",
+  magenta: "#e11d8f",
+  teal: "#2dd4bf",
+  ok: "#3ddc97",
+  addBlue: "#3d7eff",
+  danger: "#ff5d73",
+  pressHover: "rgba(255,255,255,0.18)",
+  pressActive: "rgba(255,255,255,0.28)",
+} as const;

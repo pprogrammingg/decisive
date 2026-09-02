@@ -1,0 +1,162 @@
+{
+  "layout": {
+    "order": [
+      "color",
+      "time",
+      "stats"
+    ]
+  },
+  "color": {
+    "count": 6,
+    "delayLo": "0.5",
+    "delayHi": "4.5"
+  },
+  "chime": {
+    "mode": "random",
+    "fixed": 30,
+    "lo": 5,
+    "hi": 10
+  },
+  "time": {
+    "items": [
+      {
+        "id": "tmtjikga61q10",
+        "type": "timer",
+        "running": true,
+        "runStartedAt": 1788318360764,
+        "durationMs": 630000,
+        "remainingMs": 630000,
+        "elapsedMs": 0,
+        "laps": []
+      },
+      {
+        "id": "tmtjino81t4b5",
+        "type": "stopwatch",
+        "running": false,
+        "runStartedAt": null,
+        "durationMs": 0,
+        "remainingMs": 0,
+        "elapsedMs": 86851,
+        "laps": [
+          0,
+          768,
+          2312,
+          6720,
+          7968,
+          8336,
+          8533,
+          8677,
+          83975,
+          84844,
+          85007
+        ]
+      },
+      {
+        "id": "tmtjiq0yo03sz",
+        "type": "timer",
+        "running": false,
+        "runStartedAt": null,
+        "durationMs": 30000,
+        "remainingMs": 0,
+        "elapsedMs": 0,
+        "laps": []
+      }
+    ]
+  },
+  "stats": {
+    "items": [
+      {
+        "id": "smtji3mm0b910",
+        "name": "Michael",
+        "pairs": [
+          {
+            "key": "name",
+            "value": "Micheal"
+          },
+          {
+            "key": "Last Name",
+            "value": "Nwobosi"
+          },
+          {
+            "key": "Keepups",
+            "value": "100"
+          },
+          {
+            "key": "Stimna laps",
+            "value": "4.x 400 m"
+          },
+          {
+            "key": "",
+            "value": ""
+          },
+          {
+            "key": "",
+            "value": ""
+          },
+          {
+            "key": "",
+            "value": ""
+          },
+          {
+            "key": "",
+            "value": ""
+          },
+          {
+            "key": "",
+            "value": ""
+          },
+          {
+            "key": "",
+            "value": ""
+          }
+        ]
+      },
+      {
+        "id": "smtji4cg87smb",
+        "name": "Pooyan",
+        "pairs": [
+          {
+            "key": "name",
+            "value": "Pooyan"
+          },
+          {
+            "key": "lname",
+            "value": "Najafi"
+          },
+          {
+            "key": "Keepups",
+            "value": "90"
+          },
+          {
+            "key": "Stamina",
+            "value": "5 x 400m"
+          },
+          {
+            "key": "",
+            "value": ""
+          },
+          {
+            "key": "",
+            "value": ""
+          },
+          {
+            "key": "",
+            "value": ""
+          },
+          {
+            "key": "",
+            "value": ""
+          },
+          {
+            "key": "",
+            "value": ""
+          },
+          {
+            "key": "",
+            "value": ""
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,121 @@
+:root {
+  --ink: #0c0d14;
+  --ink-2: #161824;
+  --ink-3: #1e2130;
+  --cream: #f4efe6;
+  --muted: #9aa3b8;
+  --coral: #ff6f61;
+  --periwinkle: #8b9bff;
+  --magenta: #e11d8f;
+  --teal: #2dd4bf;
+  --ok: #3ddc97;
+  --add-blue: #3d7eff;
+  --danger: #ff5d73;
+  --glass: rgba(18, 18, 28, 0.72);
+  --line: rgba(255, 255, 255, 0.12);
+  --glow: 0 0 32px rgba(225, 29, 143, 0.28);
+  --gap: 10px;
+  --r: 18px;
+  --font: "Segoe UI", system-ui, -apple-system, sans-serif;
+  --widget-color: var(--coral);
+  --widget-chime: var(--periwinkle);
+  --widget-time: var(--magenta);
+  --widget-stats: var(--teal);
+  --press-hover: rgba(255, 255, 255, 0.18);
+  --press-active: rgba(255, 255, 255, 0.28);
+  --press-ms: 120ms;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background:
+    radial-gradient(1200px 600px at 10% 110%, rgba(225, 29, 143, 0.18), transparent 55%),
+    radial-gradient(900px 500px at 110% -10%, rgba(139, 155, 255, 0.16), transparent 50%),
+    var(--ink);
+  color: var(--cream);
+  font: 15px/1.35 var(--font);
+  overflow: hidden;
+  touch-action: manipulation;
+}
+
+button, input, select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--press-ms) ease,
+    filter var(--press-ms) ease,
+    transform var(--press-ms) ease,
+    box-shadow var(--press-ms) ease;
+}
+
+.ph-icon {
+  display: block;
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+  background-color: currentColor;
+  -webkit-mask: var(--ph) center / contain no-repeat;
+  mask: var(--ph) center / contain no-repeat;
+}
+
+.ph-icon[data-ph="music-note"] { --ph: url("../assets/icons/music-note.svg"); }
+.ph-icon[data-ph="pause"] { --ph: url("../assets/icons/pause.svg"); }
+.ph-icon[data-ph="play"] { --ph: url("../assets/icons/play.svg"); }
+
+@media (hover: hover) and (pointer: fine) {
+  .icon-btn:hover,
+  .stats-open:hover {
+    background: var(--press-hover);
+  }
+
+  .btn:hover,
+  .chime-unlock:hover,
+  .fab-add:hover {
+    filter: brightness(1.08);
+  }
+
+  .row-btn:hover,
+  .add-row:hover,
+  .picker-row:hover:not(:disabled),
+  .seg button:hover:not(.is-on) {
+    background: var(--press-hover);
+  }
+}
+
+.icon-btn:active,
+.stats-open:active {
+  background: var(--press-active);
+  transform: scale(0.92);
+}
+
+.btn:active,
+.chime-unlock:active,
+.fab-add:active {
+  filter: brightness(0.92);
+  transform: scale(0.97);
+}
+
+.row-btn:active,
+.add-row:active,
+.picker-row:active:not(:disabled),
+.seg button:active:not(.is-on) {
+  background: var(--press-active);
+  transform: scale(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button { transition: none; }
+  button:active { transform: none; }
+}
+
+::selection {
+  background: rgba(255, 111, 97, 0.4);
+}

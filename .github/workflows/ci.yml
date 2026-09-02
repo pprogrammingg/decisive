@@ -1,0 +1,49 @@
+# Tests + security — PRs, main, and every day (06:00 UTC).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: tests + security
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Unit tests + security scan + badges
+        run: node scripts/ci.mjs
+
+      - name: Mobile npm audit (when lockfile exists)
+        if: hashFiles('apps/mobile/package-lock.json') != ''
+        working-directory: apps/mobile
+        run: npm ci --ignore-scripts && npm audit --omit=dev --audit-level=high
+
+      - name: Publish badges on main
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add badges/tests.svg badges/security.svg
+          if git diff --staged --quiet; then
+            echo "Badges unchanged"
+          else
+            git commit -m "chore: refresh CI badges"
+            git push
+          fi

@@ -1,1 +1,15 @@
-tests/
+node_modules/
+.expo/
+dist/
+.DS_Store
+apps/mobile/.expo/
+*.pem
+*.p8
+*.p12
+*.jks
+*.keystore
+credentials.json
+google-services.json
+.env
+.env.*
+!apps/mobile/.env.example

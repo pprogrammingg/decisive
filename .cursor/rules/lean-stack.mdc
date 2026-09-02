@@ -1,0 +1,22 @@
+---
+description: Lean web stack — HTML, CSS, and vanilla JS first
+alwaysApply: true
+---
+
+# Lean stack
+
+Web is **HTML + CSS + vanilla JS**. No React/Vue/Svelte, no CSS-in-JS, no bundler, no TypeScript on web unless a tool already requires it.
+
+- Prefer CSS for layout, grid, expand/shrink, and motion. JS handles state, timers, drag, and persist.
+- New UI is a few tags in `index.html`, rules in `css/`, behaviour in a small `js/` module — not a new dependency.
+- Mobile (`apps/mobile`) is the exception: Expo / React Native, same pattern as `../sub_zero`. Share **JSON shape and pure logic**, not DOM.
+- GitHub Pages must stay static. If persist cannot PUT, use the same JSON in `localStorage`.
+
+```js
+// ❌ BAD — framework or build for a colour tile
+import { useState } from 'react';
+
+// ✅ GOOD — CSS paints; JS sets a class or custom property
+el.style.setProperty('--bg', nextColor);
+el.classList.toggle('widget--full', expanded);
+```

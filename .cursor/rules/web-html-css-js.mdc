@@ -1,0 +1,21 @@
+---
+description: Concrete HTML/CSS/JS patterns for Decisive widgets
+globs: "**/*.{html,css,js}"
+alwaysApply: false
+---
+
+# Web files
+
+- Semantic HTML, few IDs. Classes are for CSS; `data-widget` for JS.
+- CSS variables on `:root` for coral, periwinkle, magenta, surfaces, borders. No magic hex scattered in JS except the colour widget’s palette array.
+- Grid and full-screen are CSS (`grid-template`, `.widget.is-full`). JS toggles a class and updates `layout.order`.
+- Native dialogs: `<dialog>` or one overlay component — consistent padding, radius, buttons.
+- ES modules (`type="module"`). No globals except what `index.html` must boot.
+- Widgets **keep running** when shrunk: do not `clearInterval` on contract.
+
+```css
+/* ✅ widget size is CSS, not JS measuring the window */
+.board { display: grid; gap: var(--gap); min-height: 100dvh; }
+.board[data-n="4"] { grid-template: 1fr 1fr / 1fr 1fr; }
+.widget.is-full { position: fixed; inset: 0; z-index: 5; }
+```
