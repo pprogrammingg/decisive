@@ -29,7 +29,7 @@ export const WIDGET_META = {
     title: "Stats",
     blurb: "Ten key / value field notes",
     icon: "▦",
-    about: "Field notes: names, keep-ups, splits. Ten key/value pairs per sheet. Tap the name or ▦ to open fields; long-press the name to rename; ✕ to remove."
+    about: "Field notes: names, keep-ups, splits. Ten key/value pairs per sheet. Click the name to rename (max 15). Double-click or click ▦ to open fields; ✕ to remove."
   }
 };
 

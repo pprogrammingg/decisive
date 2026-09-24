@@ -1,6 +1,7 @@
 import {
   DELAY_MIN,
   delayRangeErrors,
+  delaySecToMs,
   formatDelaySec,
   nextHalfStepSec,
   parseNum
@@ -103,7 +104,7 @@ export function colorDelayBounds(loStr, hiStr) {
 
 export function nextColorDelayMs(color, random = Math.random) {
   const z = colorDelayBounds(color && color.delayLo, color && color.delayHi);
-  return (nextHalfStepSec(z.L, z.U, random) * 1e3) | 0;
+  return delaySecToMs(nextHalfStepSec(z.L, z.U, random));
 }
 
 export function activePalette(color) {

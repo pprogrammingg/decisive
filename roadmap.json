@@ -78,7 +78,8 @@
         { "task": 4, "text": "Unit tests: clamp, next delay", "done": true },
         { "task": 5, "text": "Mobile audio / vibration + settings", "done": true },
         { "task": 6, "text": "UAT: Interval sound chime", "done": true },
-        { "task": 7, "text": "Min/max, labels, save-disable, 0.5s steps match Color", "done": true }
+        { "task": 7, "text": "Min/max, labels, save-disable, 0.5s steps match Color", "done": true },
+        { "task": 8, "text": "Exact 0.5s floats in waits and countdown (3.5 is not 4)", "done": true }
       ]
     },
     {
@@ -111,7 +112,9 @@
         { "task": 4, "text": "Unit tests: max 5, empty keys", "done": true },
         { "task": 5, "text": "Mobile Stats screen", "done": true },
         { "task": 6, "text": "UAT: Stats", "done": true },
-        { "task": 7, "text": "Tap name or ▦ opens sheet; ✕ on each chip removes", "done": true }
+        { "task": 7, "text": "Tap name or ▦ opens sheet; ✕ on each chip removes", "done": true },
+        { "task": 8, "text": "Click name to rename (15); no slug hover; double-click or ▦ opens", "done": true },
+        { "task": 9, "text": "Sheet values max 50 chars; widen value field", "done": true }
       ]
     },
     {
@@ -124,7 +127,8 @@
         { "task": 1, "text": "GitHub Pages static root + localStorage persist", "done": true },
         { "task": 2, "text": "Simultaneous widgets on Pages", "done": true },
         { "task": 3, "text": "UAT GitHub Pages steps for shipped features", "done": true },
-        { "task": 4, "text": "Mobile UAT + AsyncStorage same schema", "done": true }
+        { "task": 4, "text": "Mobile UAT + AsyncStorage same schema", "done": true },
+        { "task": 5, "text": "CI actions on Node 24 runtime (checkout/setup-node v6)", "done": true }
       ]
     },
     {

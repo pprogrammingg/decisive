@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, Vibration, View } from "react-native";
 import { IconHit, PhIcon } from "../icons";
-import { formatChimeEta, nextChimeDelaySec, type ChimeState } from "../logic";
+import { formatChimeEta, nextChimeDelayMs, type ChimeState } from "../logic";
 import { colors } from "../theme";
 
 export function ChimePane({ chime }: { chime: ChimeState }) {
@@ -18,7 +18,7 @@ export function ChimePane({ chime }: { chime: ChimeState }) {
   const schedule = useCallback((fromMs?: number) => {
     clearTimeout(timerRef.current);
     if (pausedRef.current) return;
-    const ms = fromMs != null ? Math.max(0, fromMs) : Math.max(80, nextChimeDelaySec(chimeRef.current) * 1000);
+    const ms = fromMs != null ? Math.max(0, fromMs) : Math.max(80, nextChimeDelayMs(chimeRef.current));
     dueRef.current = Date.now() + ms;
     timerRef.current = setTimeout(() => {
       if (pausedRef.current) return;

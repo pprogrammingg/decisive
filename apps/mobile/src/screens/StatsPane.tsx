@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import {
   clampStatsName,
@@ -8,6 +8,7 @@ import {
   padPairs,
   removeStatsItem,
   STATS_NAME_MAX,
+  STATS_VALUE_MAX,
   statsDisplayName,
   statsLabel,
   type StatsItem,
@@ -28,6 +29,17 @@ export function StatsPane({
   const [draftName, setDraftName] = useState("");
   const open = items.find((x) => x.id === openId);
   const [draft, setDraft] = useState<{ key: string; value: string }[]>([]);
+  const lastTap = useRef({ id: "", at: 0 });
+
+  function openOnDoubleTap(it: StatsItem) {
+    const t = Date.now();
+    if (lastTap.current.id === it.id && t - lastTap.current.at < 400) {
+      lastTap.current = { id: "", at: 0 };
+      openItem(it);
+      return;
+    }
+    lastTap.current = { id: it.id, at: t };
+  }
 
   function openItem(it: StatsItem) {
     setDraft(padPairs(it.pairs));
@@ -90,10 +102,11 @@ export function StatsPane({
                 onChangeText={(t) => setDraft(draft.map((x, j) => (j === i ? { ...x, key: t } : x)))}
               />
               <TextInput
-                style={styles.inp}
+                style={[styles.inp, styles.inpVal]}
                 placeholder={"value " + (i + 1)}
                 placeholderTextColor={colors.muted}
                 value={p.value}
+                maxLength={STATS_VALUE_MAX}
                 onChangeText={(t) => setDraft(draft.map((x, j) => (j === i ? { ...x, value: t } : x)))}
               />
             </View>
@@ -120,9 +133,8 @@ export function StatsPane({
             />
           ) : (
             <Pressable
-              style={({ pressed }) => [styles.chipName, pressed && styles.pressRow]}
-              onPress={() => openItem(it)}
-              onLongPress={() => {
+              style={styles.chipName}
+              onPress={() => {
                 setDraftName(statsDisplayName(it, i));
                 setEditingId(it.id);
               }}
@@ -130,6 +142,7 @@ export function StatsPane({
               <Text style={styles.chipT} numberOfLines={1}>{statsDisplayName(it, i)}</Text>
             </Pressable>
           )}
+          <Pressable style={styles.chipRest} onPress={() => openOnDoubleTap(it)} />
           <Pressable
             style={({ pressed }) => [styles.chipOpen, pressed && styles.pressIcon]}
             onPress={() => openItem(it)}
@@ -182,7 +195,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#2dd4bf22",
     gap: 4,
   },
-  chipName: { flex: 1, minHeight: 36, justifyContent: "center" },
+  chipName: { flexGrow: 0, flexShrink: 1, maxWidth: "58%", minWidth: 0, paddingVertical: 4 },
+  chipRest: { flex: 1, minHeight: 36 },
   chipT: { color: colors.cream, fontWeight: "800", letterSpacing: 1 },
   chipInput: {
     width: 132,
@@ -212,5 +226,6 @@ const styles = StyleSheet.create({
   danger: { color: colors.danger, fontWeight: "700" },
   grid: { padding: 10, gap: 8 },
   pair: { flexDirection: "row", gap: 8 },
-  inp: { flex: 1, backgroundColor: "#0008", color: colors.cream, borderRadius: 10, padding: 10 },
+  inp: { flex: 1, minWidth: 0, backgroundColor: "#0008", color: colors.cream, borderRadius: 10, padding: 10 },
+  inpVal: { flex: 2.2, minWidth: 200 },
 });

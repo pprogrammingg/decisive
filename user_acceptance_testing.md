@@ -58,7 +58,7 @@ Fill `pass` as you run. Deployed URL: GitHub Pages (`https://<user>.github.io/<r
 1. Add Interval chime. Tap **Tap to enable sound** if shown (or tap the page once).
 2. Expand, gear: **Fixed** or **Random**. Expected: **Every (s)** or **Min (s)** / **Max (s)** with − / + in 0.5 steps (0.5–900). Summary *Chime every … seconds*. Clicking the dimmed area does not close it; only **Save** or **Cancel**.
 3. Set **Fixed** 5s, Save. Expected: a short chime about every 5s, even when shrunk.
-4. Set **Random** min `1`, max `2`. Expected: *Chime every 1 to 2 seconds*; waits are 1, 1.5, or 2 s. Set min `4`, max `2`. Expected: error *Min must be less than or equal to max*; **Save** disabled.
+4. Set **Random** min `1`, max `2`. Expected: *Chime every 1 to 2 seconds*; waits are 1, 1.5, or 2 s. Set min `2`, max `3.5`. Expected: countdown shows **2 / 2.5 / 3 / 3.5s** — never **4s** at the start of a 3.5s wait. Set min `4`, max `2`. Expected: error *Min must be less than or equal to max*; **Save** disabled.
 5. Set min = max (e.g. both `2`). Expected: *Chime every 2 seconds*.
 6. On the widget face, tap the circular **pause** control (Phosphor bars, not a bell). Expected: countdown freezes on **paused  Ns**, chime stops. Tap again (play triangle). Expected: countdown resumes from the remaining time and chimes continue.
 
@@ -68,7 +68,7 @@ Fill `pass` as you run. Deployed URL: GitHub Pages (`https://<user>.github.io/<r
 
 ### Mobile app
 1. Add chime, set fixed/random 0.5–900s (0.5 steps; Save disabled on errors).
-2. Expected: haptic/vibration pulse on interval (and visual flash); runs in the background of the grid.
+2. Expected: haptic/vibration pulse on interval (and visual flash); runs in the background of the grid. Random 2–3.5 shows **2 / 2.5 / 3 / 3.5s**, never 4s for a 3.5s wait.
 3. Tap pause, then resume. Expected: interval holds while paused and continues from remaining time.
 
 ---
@@ -98,9 +98,9 @@ Fill `pass` as you run. Deployed URL: GitHub Pages (`https://<user>.github.io/<r
 
 ### Localhost
 1. Add Stats. Tap **+ Add stats1**. Expected: button **stats1**. Add up to **stats5**; no sixth.
-2. Tap the **stats1** name (or ▦). Expected: 10 key and 10 value fields. Enter last name / first name / keep-ups, Save (confirm).
+2. Click **▦** (or double-click the slug, not the name). Expected: 10 key and 10 value fields. Values accept **50** characters and the value column is wide enough to show them. Enter last name / first name / keep-ups, Save (confirm). Hovering the name does not wash the whole slug.
 3. Reopen. Expected: empty keys omitted from saved pairs; remaining keys still there.
-4. Long-press the name. Expected: it becomes an input (max 10). Empty falls back to statsN.
+4. Click the **stats1** name. Expected: a 15-character input. Empty falls back to statsN.
 5. Tap **✕** on a chip. Expected: confirm, then that sheet is gone; remaining chips use stats1… in list order.
 
 ### GitHub Pages (github.io)
@@ -109,7 +109,7 @@ Fill `pass` as you run. Deployed URL: GitHub Pages (`https://<user>.github.io/<r
 
 ### Mobile app
 1. Same statsN buttons and 10×2 fields, persist on device.
-2. Expected: max 5 sheets; tap name or ▦ opens fields; ✕ confirms delete; long-press name to rename.
+2. Expected: max 5 sheets; tap the name to rename (max 15); tap ▦ or double-tap the slug to open fields; ✕ confirms delete.
 
 ---
 

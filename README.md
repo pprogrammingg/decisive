@@ -13,7 +13,7 @@ Training is full of split-second choices (pass or hold, left or right, go or wai
 | **Color change** | Reaction and decision drills. The fill flips on a delay; you name the colour (or the action it means) before it changes. |
 | **Interval chime** | Beep on a fixed or random beat — work/rest, keep-ups, shuttle touches — pause when you talk. |
 | **Time** | Up to five timers and stopwatches (laps: elapsed + split). Rename clocks (max 15 characters); double-click the time to open that clock. |
-| **Stats** | Ten key/value fields per sheet — last name, first name, keep-ups, split. Rename the sheet (max 10 characters). |
+| **Stats** | Ten key/value fields per sheet — last name, first name, keep-ups, split. Click the name to rename (max 15 characters). |
 
 Add what the session needs, expand one tool to full screen, shrink it and it **keeps running**. Layout and numbers persist on refresh (and in the Expo app).
 
@@ -74,7 +74,7 @@ Workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml):
 - **every day at 06:00 UTC**
 - **Run workflow** in the Actions tab
 
-It runs `node scripts/ci.mjs` (unit tests + static security scan). If `apps/mobile/package-lock.json` exists, it also runs `npm audit --omit=dev --audit-level=high`. On `main`, it commits updated badge SVGs when they change.
+It runs `node scripts/ci.mjs` (unit tests + static security scan). If `apps/mobile/package-lock.json` exists, it also runs `npm audit --omit=dev --audit-level=high`. On `main`, it commits updated badge SVGs when they change. Checkout and setup-node are `@v6` (Node 24 action runtime).
 
 The **tests** and **security** images at the top of this file are those SVGs (`100%` when all tests pass and the scan is clean). The **CI** pill is GitHub’s live workflow status.
 
@@ -181,8 +181,8 @@ Field notes: last name, first name, keep-ups, sprint speed, etc.
 
 1. **+** → Stats → Save.
 2. **+ Add stats1** (then stats2 … up to **stats5**).
-3. **Tap the name** (e.g. `stats1`) or **▦** — the **10 key / 10 value** sheet opens. Save → confirm.
-4. **Long-press the name** to rename (max 10 characters). Empty name falls back to `stats1`.
+3. **▦** or **double-click the slug** (not the name) — the **10 key / 10 value** sheet opens. Values max **50** characters. Save → confirm.
+4. **Click the name** to rename (max 15 characters). Empty name falls back to `stats1`.
 5. Empty keys are dropped on save; the rest come back when you reopen.
 6. **✕** on the chip (confirm) removes that sheet. Custom names persist with the sheet.
 

@@ -16,6 +16,20 @@ export function formatDelaySec(n) {
   return Number.isInteger(x) ? String(x) : x.toFixed(1);
 }
 
+/** Exact ms for a half-step second value (3.5 → 3500, never truncated). */
+export function delaySecToMs(sec) {
+  const n = Math.round(Number(sec) * 2) / 2;
+  if (!Number.isFinite(n)) return 0;
+  return Math.round(n * 1000);
+}
+
+/** Remaining time on a 0.5s ladder so 3500ms reads 3.5, not 4. */
+export function remainingHalfStepSec(leftMs) {
+  const ms = Math.max(0, Number(leftMs) || 0);
+  if (ms === 0) return 0;
+  return Math.ceil(ms / (DELAY_STEP * 1000)) * DELAY_STEP;
+}
+
 export function isHalfStep(n) {
   if (!Number.isFinite(n)) return false;
   return Math.abs(n * 2 - Math.round(n * 2)) < 1e-6;

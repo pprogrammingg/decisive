@@ -366,7 +366,8 @@
 }
 
 .stats-name {
-  flex: 1;
+  flex: 0 1 auto;
+  max-width: 58%;
   min-width: 0;
   border: 0;
   background: transparent;
@@ -377,10 +378,13 @@
   text-align: left;
   padding: 6px 4px;
   border-radius: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .stats-name:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: transparent;
 }
 
 .stats-open {
@@ -396,7 +400,7 @@
 
 .pair-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(7rem, 12rem) minmax(50ch, 1fr);
   gap: 8px;
   padding: 8px 10px 16px;
   overflow: auto;
@@ -404,6 +408,7 @@
 
 .pair-grid input {
   width: 100%;
+  min-width: 0;
   padding: 9px 10px;
   border-radius: 10px;
   border: 1px solid var(--line);
@@ -411,4 +416,8 @@
 }
 
 .pair-grid .k { grid-column: 1; }
-.pair-grid .v { grid-column: 2; }
+.pair-grid .v {
+  grid-column: 2;
+  min-width: 50ch;
+  box-sizing: border-box;
+}

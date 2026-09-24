@@ -1,6 +1,7 @@
 export const MAX_STATS = 5;
 export const STATS_PAIRS = 10;
-export const STATS_NAME_MAX = 10;
+export const STATS_NAME_MAX = 15;
+export const STATS_VALUE_MAX = 50;
 
 export function defaultStats() {
   return { items: [] };
@@ -10,11 +11,15 @@ export function emptyPairs() {
   return Array.from({ length: STATS_PAIRS }, () => ({ key: "", value: "" }));
 }
 
+export function clampStatsValue(s) {
+  return String(s ?? "").slice(0, STATS_VALUE_MAX);
+}
+
 export function compactPairs(pairs) {
   return (pairs || [])
     .map((p) => ({
       key: String(p && p.key != null ? p.key : "").trim(),
-      value: String(p && p.value != null ? p.value : "")
+      value: clampStatsValue(p && p.value != null ? p.value : "")
     }))
     .filter((p) => p.key !== "")
     .slice(0, STATS_PAIRS);
@@ -30,7 +35,7 @@ export function statsLabel(index) {
   return "stats" + (index + 1);
 }
 
-/** Trim and cap at 10 characters. Empty string means “use statsN”. */
+/** Trim and cap at 15 characters. Empty string means “use statsN”. */
 export function clampStatsName(s) {
   return String(s ?? "").replace(/\s+/g, " ").trim().slice(0, STATS_NAME_MAX);
 }

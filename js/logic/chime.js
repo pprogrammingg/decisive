@@ -1,9 +1,11 @@
 import {
   delayRangeErrors,
+  delaySecToMs,
   delaySingleErrors,
   formatDelaySec,
   nextHalfStepSec,
-  parseNum
+  parseNum,
+  remainingHalfStepSec
 } from "./delay.js";
 
 export { DELAY_MAX as CHIME_MAX, DELAY_MIN as CHIME_MIN } from "./delay.js";
@@ -56,10 +58,9 @@ export function nextChimeDelaySec(chime, random = Math.random) {
 }
 
 export function nextChimeDelayMs(chime, random = Math.random) {
-  return (nextChimeDelaySec(chime, random) * 1e3) | 0;
+  return delaySecToMs(nextChimeDelaySec(chime, random));
 }
 
 export function formatChimeEta(leftMs, paused) {
-  const sec = Math.max(0, Math.ceil(leftMs / 1000));
-  return (paused ? "paused  " : "next  ") + sec + "s";
+  return (paused ? "paused  " : "next  ") + formatDelaySec(remainingHalfStepSec(leftMs)) + "s";
 }

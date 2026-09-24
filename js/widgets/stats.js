@@ -6,6 +6,7 @@ import {
   removeStatsItem,
   renameStatsItem,
   STATS_NAME_MAX,
+  STATS_VALUE_MAX,
   statsDisplayName,
   statsLabel
 } from "../logic/stats.js";
@@ -45,37 +46,23 @@ export function mountStats(body, ctx) {
       const chip = document.createElement("div");
       chip.className = "stats-chip";
       const nameBtn = btn("stats-name", statsDisplayName(it, i));
-      nameBtn.title = "Open fields — long-press to rename";
-      nameBtn.setAttribute("aria-label", "Open " + statsDisplayName(it, i));
-      let holdTimer = 0;
-      let held = false;
-      const clearHold = () => {
-        if (holdTimer) clearTimeout(holdTimer);
-        holdTimer = 0;
-      };
-      nameBtn.addEventListener("pointerdown", () => {
-        held = false;
-        holdTimer = setTimeout(() => {
-          holdTimer = 0;
-          held = true;
-          startRename(nameBtn, it, i);
-        }, 550);
-      });
-      nameBtn.addEventListener("pointerup", clearHold);
-      nameBtn.addEventListener("pointerleave", clearHold);
-      nameBtn.addEventListener("pointercancel", clearHold);
+      nameBtn.title = "Click to rename";
+      nameBtn.setAttribute("aria-label", "Rename " + statsDisplayName(it, i));
       nameBtn.onclick = (e) => {
         e.stopPropagation();
-        if (held) {
-          held = false;
-          return;
-        }
-        editSheet(it.id);
+        startRename(nameBtn, it, i);
       };
       const openBtn = btn("stats-open", "▦");
       openBtn.setAttribute("aria-label", "Open " + statsDisplayName(it, i) + " fields");
-      openBtn.onclick = (e) => {
+      openBtn.title = "Double-click to open";
+      const openSheet = (e) => {
         e.stopPropagation();
+        editSheet(it.id);
+      };
+      openBtn.onclick = openSheet;
+      openBtn.ondblclick = openSheet;
+      chip.ondblclick = (e) => {
+        if (e.target === nameBtn) return;
         editSheet(it.id);
       };
       const trash = btn("icon-btn", "✕");
@@ -145,6 +132,8 @@ export function mountStats(body, ctx) {
           const v = document.createElement("input");
           v.className = "v";
           v.placeholder = "value " + (i + 1);
+          v.maxLength = STATS_VALUE_MAX;
+          v.size = STATS_VALUE_MAX;
           v.value = pairs[i].value;
           keys.push(k);
           vals.push(v);

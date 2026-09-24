@@ -185,6 +185,7 @@ A chime on a timer. Runs even when the widget is shrunk.
 - [x] **IC001-5** — Mobile: `Audio` / Expo AV; same settings.
 - [x] **IC001-6** — **UAT:** Interval sound chime
 - [x] **IC001-7** — Min/max, labels, save-disable, and 0.5s waits match Color.
+- [x] **IC001-8** — Countdown and waits stay on the exact 0.5s float (3.5s is not shown or scheduled as 4).
 
 Louder chime is **UX001-5**.
 
@@ -216,6 +217,8 @@ Field notes: last name, first name, keep-ups, sprint speed, etc.
 - [x] **ST001-5** — Mobile: same buttons + 10×2 fields.
 - [x] **ST001-6** — **UAT:** Stats
 - [x] **ST001-7** — Tap the sheet name or ▦ to open fields; **✕** on each chip removes (confirm). Long-press the name to rename.
+- [x] **ST001-8** — Click the name to rename (15 chars, no slug-wide hover). Double-click or ▦ opens the sheet.
+- [x] **ST001-9** — Sheet values max **50** characters; value field is wide enough to show them.
 
 ---
 
@@ -225,6 +228,7 @@ Field notes: last name, first name, keep-ups, sprint speed, etc.
 - [x] **DP001-2** — Widgets still simultaneous on Pages.
 - [x] **DP001-3** — Fill UAT **GitHub Pages** steps for every feature shipped.
 - [x] **DP001-4** — Mobile UAT for every feature; store on device (AsyncStorage), same schema.
+- [x] **DP001-5** — CI actions on Node 24 runtime (`actions/checkout@v6`, `actions/setup-node@v6`).
 
 ---
 

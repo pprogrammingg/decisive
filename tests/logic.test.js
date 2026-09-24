@@ -17,7 +17,8 @@ import {
   pickedColors,
   slotLocked
 } from "../js/logic/color.js";
-import { nextChimeDelaySec, ensureChime, formatChimeEta, chimeSettingsErrors, chimeChangeLabel } from "../js/logic/chime.js";
+import { nextChimeDelaySec, nextChimeDelayMs, ensureChime, formatChimeEta, chimeSettingsErrors, chimeChangeLabel } from "../js/logic/chime.js";
+import { delaySecToMs, remainingHalfStepSec } from "../js/logic/delay.js";
 import {
   addWidgets,
   canAdd,
@@ -59,11 +60,13 @@ import {
   padPairs,
   statsLabel,
   clampStatsName,
+  clampStatsValue,
   statsDisplayName,
   removeStatsItem,
   renameStatsItem,
   MAX_STATS,
-  STATS_PAIRS
+  STATS_PAIRS,
+  STATS_VALUE_MAX
 } from "../js/logic/stats.js";
 import { ensureState, emptyState } from "../js/logic/state.js";
 
@@ -126,6 +129,13 @@ describe("color settings", () => {
     assert.equal(nextColorDelayMs(c, () => 0), 1000);
     assert.equal(nextColorDelayMs(c, () => 0.5), 1500);
     assert.equal(nextColorDelayMs(c, () => 1), 2000);
+    assert.equal(nextHalfStepSec(2, 3.5, () => 0), 2);
+    assert.equal(nextHalfStepSec(2, 3.5, () => 0.25), 2.5);
+    assert.equal(nextHalfStepSec(2, 3.5, () => 0.5), 3);
+    assert.equal(nextHalfStepSec(2, 3.5, () => 0.99), 3.5);
+    assert.equal(nextHalfStepSec(2, 3.5, () => 1), 3.5);
+    assert.equal(delaySecToMs(3.5), 3500);
+    assert.equal(nextColorDelayMs(ensureColor({ slots: ["#FF0000", "#00FF00"], delayLo: "2", delayHi: "3.5" }), () => 1), 3500);
   });
   it("migrates old count to slots; keeps yellow+coral default", () => {
     const m = ensureColor({ count: 3, delayLo: "1", delayHi: "4" });
@@ -147,6 +157,9 @@ describe("chime", () => {
     assert.equal(nextChimeDelaySec(c, () => 0), 1);
     assert.equal(nextChimeDelaySec(c, () => 0.5), 1.5);
     assert.equal(nextChimeDelaySec(c, () => 1), 2);
+    const half = ensureChime({ mode: "random", lo: 2, hi: 3.5 });
+    assert.equal(nextChimeDelaySec(half, () => 1), 3.5);
+    assert.equal(nextChimeDelayMs(half, () => 1), 3500);
   });
   it("min/max errors match color; reversed range is invalid", () => {
     const bad = chimeSettingsErrors({ mode: "random", lo: "4", hi: "2" });
@@ -164,8 +177,12 @@ describe("chime", () => {
     assert.equal(chimeChangeLabel("random", 30, 1, 2), "Chime every 1 to 2 seconds");
     assert.equal(chimeChangeLabel("random", 30, 3, 3), "Chime every 3 seconds");
   });
-  it("eta label pauses and ceils seconds", () => {
-    assert.equal(formatChimeEta(12500, false), "next  13s");
+  it("eta label uses exact 0.5s steps (3.5 stays 3.5, not 4)", () => {
+    assert.equal(remainingHalfStepSec(3500), 3.5);
+    assert.equal(remainingHalfStepSec(3001), 3.5);
+    assert.equal(remainingHalfStepSec(3000), 3);
+    assert.equal(formatChimeEta(3500, false), "next  3.5s");
+    assert.equal(formatChimeEta(12500, false), "next  12.5s");
     assert.equal(formatChimeEta(4000, true), "paused  4s");
     assert.equal(formatChimeEta(0, true), "paused  0s");
   });
@@ -296,14 +313,21 @@ describe("stats", () => {
     assert.equal(compact.length, 2);
     assert.equal(padPairs(compact).length, STATS_PAIRS);
   });
-  it("renames clamp to 10 chars", () => {
+  it("renames clamp to 15 chars", () => {
     assert.equal(clampStatsName("micheal"), "micheal");
-    assert.equal(clampStatsName("  abcdefghijkl  "), "abcdefghij");
+    assert.equal(clampStatsName("  abcdefghijklmnopqrst  "), "abcdefghijklmno");
     let items = addStatsItem([]);
     items = renameStatsItem(items, items[0].id, "micheal");
     assert.equal(statsDisplayName(items[0], 0), "micheal");
     items = renameStatsItem(items, items[0].id, "   ");
     assert.equal(statsDisplayName(items[0], 0), "stats1");
+  });
+  it("value fields clamp to 50 chars", () => {
+    const long = "x".repeat(80);
+    assert.equal(clampStatsValue(long).length, STATS_VALUE_MAX);
+    assert.equal(STATS_VALUE_MAX, 50);
+    const compact = compactPairs([{ key: "note", value: long }]);
+    assert.equal(compact[0].value.length, 50);
   });
 });
 

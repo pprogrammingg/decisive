@@ -28,6 +28,10 @@
   animation: pop 220ms ease;
 }
 
+.dlg:has(.pair-grid) {
+  width: min(66rem, calc(100vw - 40px));
+}
+
 @keyframes pop {
   from { transform: translateY(10px) scale(0.98); opacity: 0; }
   to { transform: none; opacity: 1; }

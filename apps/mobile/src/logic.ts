@@ -42,7 +42,7 @@ export const WIDGET_META: Record<
     title: "Stats",
     blurb: "Ten key / value field notes",
     icon: "▦",
-    about: "Field notes: names, keep-ups, splits. Ten key/value pairs per sheet. Tap the name or ▦ to open fields; long-press the name to rename; ✕ to remove.",
+    about: "Field notes: names, keep-ups, splits. Ten key/value pairs per sheet. Tap the name to rename (max 15). Double-tap or tap ▦ to open fields; ✕ to remove.",
   },
 };
 
@@ -53,7 +53,8 @@ export const LAP_ROWS = 10;
 export const MAX_LAPS = 99;
 export const MAX_STATS = 5;
 export const STATS_PAIRS = 10;
-export const STATS_NAME_MAX = 10;
+export const STATS_NAME_MAX = 15;
+export const STATS_VALUE_MAX = 50;
 
 export type ColorState = { slots: string[]; delayLo: string; delayHi: string };
 export type ChimeState = { mode: "fixed" | "random"; fixed: number; lo: number; hi: number };
@@ -136,6 +137,18 @@ export function formatDelaySec(n: number): string {
   const x = Math.round(Number(n) * 2) / 2;
   if (!Number.isFinite(x)) return "";
   return Number.isInteger(x) ? String(x) : x.toFixed(1);
+}
+
+export function delaySecToMs(sec: number): number {
+  const n = Math.round(Number(sec) * 2) / 2;
+  if (!Number.isFinite(n)) return 0;
+  return Math.round(n * 1000);
+}
+
+export function remainingHalfStepSec(leftMs: number): number {
+  const ms = Math.max(0, Number(leftMs) || 0);
+  if (ms === 0) return 0;
+  return Math.ceil(ms / (DELAY_STEP * 1000)) * DELAY_STEP;
 }
 
 export function isHalfStep(n: number): boolean {
@@ -235,7 +248,7 @@ export function nextHalfStepSec(lo: number, hi: number, random = Math.random): n
 
 export function nextColorDelayMs(color: ColorState, random = Math.random): number {
   const z = colorDelayBounds(color.delayLo, color.delayHi);
-  return (nextHalfStepSec(z.L, z.U, random) * 1e3) | 0;
+  return delaySecToMs(nextHalfStepSec(z.L, z.U, random));
 }
 
 export function activePalette(color: ColorState): string[] {
@@ -322,9 +335,12 @@ export function nextChimeDelaySec(chime: ChimeState, random = Math.random): numb
   return nextHalfStepSec(c.lo, c.hi, random);
 }
 
+export function nextChimeDelayMs(chime: ChimeState, random = Math.random): number {
+  return delaySecToMs(nextChimeDelaySec(chime, random));
+}
+
 export function formatChimeEta(leftMs: number, paused: boolean): string {
-  const sec = Math.max(0, Math.ceil(leftMs / 1000));
-  return (paused ? "paused  " : "next  ") + sec + "s";
+  return (paused ? "paused  " : "next  ") + formatDelaySec(remainingHalfStepSec(leftMs)) + "s";
 }
 
 export function uniqueOrder(order: unknown): WidgetId[] {
@@ -493,9 +509,13 @@ export function hmsToMs(h: number, m: number, s: number): number {
   return ((Math.max(0, h | 0) * 3600) + (Math.min(59, Math.max(0, m | 0)) * 60) + Math.min(59, Math.max(0, s | 0))) * 1000;
 }
 
+export function clampStatsValue(s: unknown): string {
+  return String(s ?? "").slice(0, STATS_VALUE_MAX);
+}
+
 export function compactPairs(pairs: { key: string; value: string }[]): { key: string; value: string }[] {
   return (pairs || [])
-    .map((p) => ({ key: String(p?.key ?? "").trim(), value: String(p?.value ?? "") }))
+    .map((p) => ({ key: String(p?.key ?? "").trim(), value: clampStatsValue(p?.value) }))
     .filter((p) => p.key !== "")
     .slice(0, STATS_PAIRS);
 }
